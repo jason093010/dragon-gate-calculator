@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>射龍門終極計算器 v12</title>
+<title>射龍門終極計算器 v13.0</title>
 <style>
   :root {
     --bg-color: #f4f7f6; --card-bg: #ffffff; --text-color: #333333;
@@ -37,6 +37,7 @@
   .btn-undo { background-color: #636e72; flex: 1; }
   .btn-transfer { background-color: #00b894; flex: 1; }
   .btn-sort { background-color: #0984e3; width: 100%; margin-top: 10px; }
+  .btn-settle { background-color: #d35400; width: 100%; margin-top: 5px; }
   
   .input-group { display: flex; gap: 8px; align-items: center; margin: 5px 0; }
   .input-group input { flex: 1; margin: 0; }
@@ -73,8 +74,13 @@
   #toast.lose { background-color: #c0392b; }
 
   .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.75); backdrop-filter: blur(4px); }
-  .modal-content { background-color: var(--card-bg); margin: 8vh auto; padding: 20px; border-radius: 12px; width: 85%; max-width: 400px; max-height: 85vh; overflow-y: auto; position: relative; color: var(--text-color); }
+  .modal-content { background-color: var(--card-bg); margin: 8vh auto; padding: 20px; border-radius: 12px; width: 85%; max-width: 450px; max-height: 85vh; overflow-y: auto; position: relative; color: var(--text-color); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
   .close-modal { color: #aaa; position: absolute; right: 15px; top: 10px; font-size: 28px; cursor: pointer; }
+  
+  .modal h3 { margin-top: 0; border-bottom: 2px solid var(--border-color); padding-bottom: 10px; color: var(--heading-color); }
+  .modal h4 { color: #e67e22; margin-bottom: 8px; margin-top: 15px; font-size: 16px; }
+  .modal ul { padding-left: 20px; margin-top: 0; }
+  .modal li { margin-bottom: 8px; line-height: 1.5; font-size: 14px; }
 </style>
 </head>
 <body>
@@ -82,7 +88,7 @@
 <div class="card">
   <div class="header-row">
     <h2>💰 底池與規則</h2>
-    <button class="btn-help" onclick="openModal('helpModal')">📖 說明</button>
+    <button class="btn-help" onclick="openModal('helpModal')">📖 完整說明</button>
   </div>
   <div class="wake-lock-status" id="wakeStatus">● 螢幕常亮已啟動</div>
   <label>注入底池金額:</label>
@@ -131,6 +137,7 @@
   <h2>📊 結算排行榜</h2>
   <div id="playerList"></div>
   <button class="btn-sort" onclick="sortByRank()">🏆 依金額排行 (由高到低)</button>
+  <button class="btn-settle" onclick="calculateSettlement()">🤝 遊戲結束：一鍵結算誰給誰錢</button>
 </div>
 
 <div class="card">
@@ -142,15 +149,30 @@
 <div id="helpModal" class="modal">
   <div class="modal-content">
     <span class="close-modal" onclick="closeModal('helpModal')">&times;</span>
-    <h3>💡 射龍門 - 終極指南</h3>
-    <h4>1. ↩️ 復原功能 (Undo)</h4>
-    <ul><li>按錯了？點擊「復原上步」即可讓底池與籌碼回到動作前的狀態。</li></ul>
-    <h4>2. 💸 玩家轉帳</h4>
-    <ul><li>玩家私下借錢或給錢時使用，不影響底池。</li></ul>
-    <h4>3. 🏆 排行榜</h4>
-    <ul><li>點擊「依金額排行」，系統會自動幫大家從小排到大，結算超方便。</li></ul>
-    <h4>4. 🔆 螢幕常亮</h4>
-    <ul><li>只要打開此網頁，手機就不會自動休眠鎖定，方便大家輪流操作。</li></ul>
+    <h3>💡 射龍門 - 完整終極指南</h3>
+    
+    <h4>1. 🎲 開局與準備</h4>
+    <ul>
+      <li><strong>設定底池</strong>：輸入總彩金點擊「確認注入」，系統會自動從大家身上平攤扣除。</li>
+      <li><strong>加入玩家</strong>：輸入名稱與初始籌碼（金額自訂，可扣至負數）。</li>
+    </ul>
+
+    <h4>2. 🎮 遊戲與快捷操作</h4>
+    <ul>
+      <li><strong>下注</strong>：不知喊多少可直接點擊 <strong>1/3、1/2 或 🔥 梭哈</strong> 快捷鈕。</li>
+      <li><strong>✅ 進門 / ❌ 不進 / 💥 撞柱</strong>：點擊對應結果，系統自動計算底池與賠率。</li>
+    </ul>
+
+    <h4>3. 💸 轉帳與防呆工具</h4>
+    <ul>
+      <li><strong>玩家轉帳</strong>：玩家間私下借還錢，點擊上方「💸 玩家轉帳」互轉，不影響底池。</li>
+      <li><strong>復原上步</strong>：按錯了？點擊「↩️ 復原」讓所有金額回到上一動。</li>
+    </ul>
+
+    <h4>4. 🤝 最終遊戲結算 (神級功能)</h4>
+    <ul>
+      <li>遊戲結束時，點擊最下方<strong>「🤝 一鍵結算誰給誰錢」</strong>。系統會自動把剩下的底池平分給所有人，並算出最完美的「轉帳路線」（例如 A 轉給 B 多少），完全免去人為複雜計算！</li>
+    </ul>
   </div>
 </div>
 
@@ -168,6 +190,15 @@
   </div>
 </div>
 
+<div id="settlementModal" class="modal">
+  <div class="modal-content">
+    <span class="close-modal" onclick="closeModal('settlementModal')">&times;</span>
+    <h3>🤝 最終轉帳清單</h3>
+    <div id="settlementResult"></div>
+    <button class="btn-full" style="background-color:#2ecc71; margin-top:20px;" onclick="closeModal('settlementModal')">確認並關閉</button>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -179,7 +210,6 @@
 
   function formatNum(num) { return Number.isInteger(num) ? num : parseFloat(num.toFixed(2)); }
 
-  // --- 核心：快照備份 (用於 Undo) ---
   function pushState() {
     const state = JSON.stringify({ pot, players, historyLog: [...historyLog] });
     historyStack.push(state);
@@ -206,14 +236,20 @@
   }
 
   function saveBackupData() {
-    localStorage.setItem('DragonGateBackup_v12', JSON.stringify({ pot, players, historyLog }));
+    localStorage.setItem('DragonGateBackup_v13', JSON.stringify({ pot, players, historyLog }));
   }
 
   function loadBackupData() {
-    const saved = localStorage.getItem('DragonGateBackup_v12');
+    const saved = localStorage.getItem('DragonGateBackup_v13');
     if (saved) {
       const d = JSON.parse(saved);
-      pot = d.pot; players = d.players; historyLog = d.historyLog || [];
+      pot = d.pot; 
+      // 相容舊版本：如果舊資料沒有 initialBalance，預設為 1000
+      players = (d.players || []).map(p => ({
+          ...p, 
+          initialBalance: p.initialBalance !== undefined ? p.initialBalance : 1000 
+      }));
+      historyLog = d.historyLog || [];
       updateUI(); renderHistory();
     }
   }
@@ -272,7 +308,8 @@
     const b = parseFloat(document.getElementById('playerBalance').value) || 0;
     if (!n) return alert("請輸入名稱");
     pushState();
-    players.push({ name: n, balance: b });
+    // 核心修改：紀錄玩家加入時的 initialBalance，用於最終淨損益結算
+    players.push({ name: n, balance: b, initialBalance: b });
     document.getElementById('playerName').value = '';
     addLog(`➕ ${n} 加入 (初始 ${b})`);
     updateUI(); saveBackupData();
@@ -340,6 +377,61 @@
     updateUI(); saveBackupData(); showToast(`加碼 ${amt}`, "addpot");
   }
 
+  // --- 終極核心：一鍵算清轉帳路徑 (Splitwise Algorithm) ---
+  function calculateSettlement() {
+    if (players.length === 0) return alert("沒有玩家可以結算！");
+
+    // 1. 虛擬平分剩下的底池
+    let splitPot = pot / players.length;
+    
+    // 2. 計算每個人的淨損益 (最終籌碼 + 平分底池 - 初始籌碼)
+    let nets = players.map(p => {
+      let init = p.initialBalance !== undefined ? p.initialBalance : 1000;
+      let current = p.balance + splitPot;
+      return { name: p.name, net: current - init };
+    });
+
+    // 3. 拆分債務人(負數)與債權人(正數)
+    let debtors = nets.filter(p => p.net < -0.01).map(p => ({name: p.name, debt: Math.abs(p.net)})).sort((a,b) => b.debt - a.debt);
+    let creditors = nets.filter(p => p.net > 0.01).map(p => ({name: p.name, credit: p.net})).sort((a,b) => b.credit - a.credit);
+
+    let transactions = [];
+    let i = 0, j = 0;
+
+    // 4. 貪婪演算法配對轉帳
+    while (i < debtors.length && j < creditors.length) {
+      let d = debtors[i];
+      let c = creditors[j];
+      let amount = Math.min(d.debt, c.credit);
+
+      if (amount > 0.01) {
+          transactions.push(`<strong style="color:#e74c3c">${d.name}</strong> ➡️ 轉給 ➡️ <strong style="color:#2ecc71">${c.name}</strong> : $<b>${formatNum(amount)}</b>`);
+      }
+
+      d.debt -= amount;
+      c.credit -= amount;
+
+      if (d.debt < 0.01) i++;
+      if (c.credit < 0.01) j++;
+    }
+
+    // 5. 渲染結算畫面
+    let html = `<div style="background:var(--history-bg); padding:10px; border-radius:8px; margin-bottom:15px; font-size:14px; text-align:center;">
+                  目前桌上剩餘底池：<b>$${formatNum(pot)}</b><br>
+                  <span style="color:#7f8c8d">(系統已自動將底池平分至各自的結算淨額中)</span>
+                </div><ul style="padding-left:0;">`;
+    
+    if (transactions.length === 0) {
+      html += "<li style='list-style:none; text-align:center;'>🎉 沒有人需要轉帳，大家扯平！</li>";
+    } else {
+      transactions.forEach(t => html += `<li style="margin-bottom:12px; font-size: 16px; list-style:none; border-bottom:1px dashed var(--border-color); padding-bottom:8px;">${t}</li>`);
+    }
+    html += "</ul>";
+
+    document.getElementById('settlementResult').innerHTML = html;
+    openModal('settlementModal');
+  }
+
   function addLog(m) {
     const t = new Date().toLocaleTimeString();
     historyLog.unshift(`[${t}] ${m}`);
@@ -349,12 +441,12 @@
 
   function renderHistory() {
     const b = document.getElementById('historyBox');
-    b.innerHTML = historyLog.map(l => `<div style="border-bottom:1px dashed #444; padding:2px 0">${l}</div>`).join('');
+    b.innerHTML = historyLog.map(l => `<div style="border-bottom:1px dashed var(--border-color); padding:4px 0">${l}</div>`).join('');
   }
 
   function resetGame() {
-    if (confirm("確定清除開新局？")) {
-      localStorage.removeItem('DragonGateBackup_v12');
+    if (confirm("確定清除所有紀錄並開新局？此動作不可復原！")) {
+      localStorage.removeItem('DragonGateBackup_v13');
       location.reload();
     }
   }
@@ -363,7 +455,7 @@
   function showToast(m, t) { const s = document.getElementById("toast"); s.innerHTML = m; s.className = `show ${t}`; setTimeout(() => s.className = "", 2500); }
   function openModal(id) { document.getElementById(id).style.display = 'block'; }
   function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-  window.onclick = function(e) { if (e.target.className === 'modal') e.target.style.display = "none"; }
+  window.onclick = function(e) { if (e.target.classList.contains('modal')) e.target.style.display = "none"; }
 </script>
 
 </body>
