@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>射龍門終極計算器 v14</title>
+<title>射龍門終極計算器 v15</title>
 <style>
   :root {
     --bg-color: #f4f7f6; --card-bg: #ffffff; --text-color: #333333;
@@ -72,16 +72,17 @@
   #toast.win { background-color: #27ae60; }
   #toast.lose { background-color: #c0392b; }
 
-  /* 手機版排版修復：改為外層全版面滑動 */
+  /* 彈出視窗：全版面滑動防遮擋設計 */
   .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.75); backdrop-filter: blur(4px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .modal-content { background-color: var(--card-bg); margin: 10% auto 15% auto; padding: 20px; border-radius: 12px; width: 85%; max-width: 450px; position: relative; color: var(--text-color); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
   .close-modal { color: #aaa; position: absolute; right: 15px; top: 10px; font-size: 28px; cursor: pointer; }
+  
   .modal h3 { margin-top: 0; border-bottom: 2px solid var(--border-color); padding-bottom: 10px; color: var(--heading-color); }
-  .modal h4 { color: #e67e22; margin-bottom: 8px; margin-top: 15px; font-size: 16px; }
-  .modal ul { padding-left: 20px; margin-top: 0; }
+  .modal h4 { color: #e67e22; margin-bottom: 8px; margin-top: 15px; font-size: 16px; border-left: 4px solid #e67e22; padding-left: 8px; }
+  .modal ul { padding-left: 20px; margin-top: 5px; }
   .modal li { margin-bottom: 8px; line-height: 1.5; font-size: 14px; }
 
-  /* --- 虛擬撲克牌系統專屬 CSS --- */
+  /* 虛擬撲克牌系統 */
   .toggle-container { background: var(--history-bg); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
   .toggle-container label { font-size: 16px; font-weight: bold; margin: 0; color: var(--text-color); }
   .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
@@ -171,9 +172,8 @@
   </div>
 
   <div id="virtualArea" class="desk-area">
-    <div class="deck-info" id="deckInfo">剩餘牌數: 52</div>
-    <div class="cards-container" id="cardsDisplay">
-      </div>
+    <div class="deck-info" id="deckInfo">牌庫剩餘: 104 張 (雙副牌)</div>
+    <div class="cards-container" id="cardsDisplay"></div>
     
     <div id="pairPredictionArea" style="display:none; margin-bottom:10px;">
       <label style="color:white;">⚠️ 門柱成對，請預測第三張牌：</label>
@@ -186,7 +186,7 @@
     <button class="btn-full btn-draw" id="btnDrawGate" onclick="drawGate()">🎲 翻開兩張門柱</button>
     <div class="input-group" id="virtualActionGroup" style="display:none;">
       <button class="btn-undo" style="background-color:#e74c3c;" onclick="virtualPass()">⏭️ 放棄過水</button>
-      <button class="btn-transfer" style="background-color:#8e44ad;" onclick="virtualShoot()">🚀 確定下注 (翻第三張)</button>
+      <button class="btn-transfer" style="background-color:#8e44ad;" onclick="virtualShoot()">🚀 確定下注開牌</button>
     </div>
     <div class="bottom-action-row" style="margin-top:10px;">
       <input type="number" id="addPotAmountV" value="20" style="background:white; color:black;">
@@ -212,16 +212,37 @@
   <div class="modal-content">
     <span class="close-modal" onclick="closeModal('helpModal')">&times;</span>
     <h3>💡 射龍門 - 完整終極指南</h3>
-    <h4>🃏 全新：虛擬撲克牌模式</h4>
+    
+    <h4>1. 🎲 開局與準備</h4>
     <ul>
-      <li>打開開關，系統會生成一副包含 52 張牌的虛擬牌堆（包含真實的 Fisher-Yates 洗牌機率）。</li>
-      <li>點擊「翻開門柱」，決定下注金額後點擊「確定下注」，系統會自動開出第三張牌並<strong>自動判定輸贏與計算彩金</strong>。</li>
-      <li>若門柱是兩張一樣的牌（對子），你必須預測第三張牌是「大」還是「小」。</li>
+      <li><strong>設定底池</strong>：輸入總彩金點擊「確認注入」，系統會自動從所有玩家籌碼中平攤扣款。</li>
+      <li><strong>加入玩家</strong>：輸入名稱與初始籌碼（金額可自訂，遊戲中允許扣至負數，代表欠款）。</li>
     </ul>
-    <h4>💸 特殊功能</h4>
+
+    <h4>2. 🃏 虛擬撲克牌模式 (防算牌雙副牌)</h4>
     <ul>
-      <li><strong>復原上步</strong>：點擊「↩️ 復原」讓所有金額與牌局回到上一動。</li>
-      <li><strong>自動結算</strong>：遊戲結束點擊「🤝 一鍵結算」，自動計算並平分剩下的底池，產生最少轉帳次數的還錢清單！</li>
+      <li>打開虛擬開關，系統會建立<strong>兩副牌 (共 104 張)</strong>的虛擬牌堆，並使用 Fisher-Yates 演算法完美洗牌，徹底杜絕算牌客的機率優勢。</li>
+      <li>點擊「翻開門柱」，決定下注金額後點擊「確定下注」，系統會自動翻出第三張牌並<strong>自動判定輸贏、結算彩金</strong>。</li>
+      <li>若門柱成對（如 QQ），請透過選單預測第三張是「大」還是「小」。預測錯誤若撞出第三張 Q，則觸發三倍重罰！</li>
+    </ul>
+
+    <h4>3. 🎮 傳統手動模式與快捷操作</h4>
+    <ul>
+      <li><strong>快捷下注</strong>：不知喊多少可直接點擊 <strong>1/3、1/2 或 🔥 梭哈</strong> 快捷鈕。</li>
+      <li><strong>手動判定</strong>：關閉虛擬牌桌時，自己翻實體牌，並點擊 ✅ 進門 / ❌ 不進 / 💥 撞柱 等按鈕，系統會自動計算底池。</li>
+    </ul>
+
+    <h4>4. 💸 資金變動與防呆工具</h4>
+    <ul>
+      <li><strong>平攤加碼</strong>：覺得底池太小，輸入金額點擊加碼，系統自動向每位玩家扣款並注入底池。</li>
+      <li><strong>玩家轉帳</strong>：玩家間私下借還錢，點擊最上方「💸 玩家轉帳」互轉，不影響底池。</li>
+      <li><strong>復原上步</strong>：按錯了？點擊「↩️ 復原」讓底池、籌碼與牌局回到上一動，解決一切爭議。</li>
+    </ul>
+
+    <h4>5. 🤝 最終遊戲結算 (神級功能)</h4>
+    <ul>
+      <li>遊戲結束時，點擊最下方<strong>「🤝 一鍵結算誰給誰錢」</strong>。</li>
+      <li>系統會自動把剩下的底池平分給所有人，並算出最完美的「最少轉帳路線」（例如 A 轉給 B 多少），完全免去人為複雜計算！</li>
     </ul>
   </div>
 </div>
@@ -252,20 +273,16 @@
 <div id="toast"></div>
 
 <script>
-  // --- 系統狀態與資料變數 ---
   let pot = 0; let players = []; let historyLog = []; let historyStack = [];
   let multiplier = 2; let tripleMultiplier = 3; let isActionLocked = false;
   let wakeLock = null;
 
-  // 虛擬牌堆變數
-  let virtualDeck = [];
-  let currentGate = [];
-  let gateDrawn = false;
+  // 雙副牌庫變數
+  let virtualDeck = []; let currentGate = []; let gateDrawn = false;
 
   window.onload = function() { loadBackupData(); requestWakeLock(); initDeck(); };
   function formatNum(num) { return Number.isInteger(num) ? num : parseFloat(num.toFixed(2)); }
 
-  // --- 狀態備份機制 (包含虛擬牌堆狀態) ---
   function pushState() {
     const state = JSON.stringify({ pot, players, historyLog: [...historyLog], virtualDeck: [...virtualDeck], currentGate: [...currentGate], gateDrawn });
     historyStack.push(state);
@@ -283,11 +300,11 @@
   }
 
   function saveBackupData() {
-    localStorage.setItem('DragonGateBackup_v14', JSON.stringify({ pot, players, historyLog }));
+    localStorage.setItem('DragonGateBackup_v15', JSON.stringify({ pot, players, historyLog }));
   }
 
   function loadBackupData() {
-    const saved = localStorage.getItem('DragonGateBackup_v14');
+    const saved = localStorage.getItem('DragonGateBackup_v15');
     if (saved) {
       const d = JSON.parse(saved);
       pot = d.pot; 
@@ -297,7 +314,6 @@
     }
   }
 
-  // --- 介面切換與 UI 更新 ---
   function toggleVirtualMode() {
     const useVirtual = document.getElementById('virtualToggle').checked;
     document.getElementById('manualArea').style.display = useVirtual ? 'none' : 'block';
@@ -337,17 +353,20 @@
   function manualEdit(i, val) { pushState(); players[i].balance = parseFloat(val) || 0; saveBackupData(); updateUI(); }
   function setFraction(f) { document.getElementById('betAmount').value = Math.floor(pot * f); }
 
-  // --- 虛擬撲克牌核心邏輯 (Fisher-Yates 洗牌) ---
+  // --- 虛擬撲克牌核心 (104張雙副牌) ---
   function initDeck() {
     virtualDeck = [];
     const suits = ['♠', '♥', '♦', '♣'];
     const ranks = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-    for(let s of suits) {
-      for(let i=0; i<ranks.length; i++) {
-        virtualDeck.push({ suit: s, rank: ranks[i], val: i+1, color: (s==='♥'||s==='♦')?'red-card':'black-card' });
+    // 迴圈跑 2 次，產生 104 張牌
+    for(let d = 0; d < 2; d++) {
+      for(let s of suits) {
+        for(let i=0; i<ranks.length; i++) {
+          virtualDeck.push({ suit: s, rank: ranks[i], val: i+1, color: (s==='♥'||s==='♦')?'red-card':'black-card' });
+        }
       }
     }
-    // Fisher-Yates Shuffle
+    // Fisher-Yates 洗牌演算法
     for (let i = virtualDeck.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [virtualDeck[i], virtualDeck[j]] = [virtualDeck[j], virtualDeck[i]];
@@ -355,7 +374,7 @@
     updateDeckInfo();
   }
 
-  function updateDeckInfo() { document.getElementById('deckInfo').innerText = `剩餘牌數: ${virtualDeck.length}`; }
+  function updateDeckInfo() { document.getElementById('deckInfo').innerText = `牌庫剩餘: ${virtualDeck.length} 張 (雙副牌)`; }
 
   function createCardHTML(card, isFlipped = false) {
     if(!card) return '';
@@ -384,12 +403,11 @@
   function drawGate() {
     if (players.length === 0) return alert("請先加入玩家！");
     if (pot <= 0) return alert("底池空了！請先設定底池。");
-    if (virtualDeck.length < 3) { initDeck(); addLog("🔄 牌庫不足，系統已自動重新洗牌"); }
+    if (virtualDeck.length < 5) { initDeck(); addLog("🔄 牌庫到底，已重新洗牌(104張)"); }
     
     currentGate = [virtualDeck.pop(), virtualDeck.pop()];
     gateDrawn = true;
     
-    // 渲染卡片並觸發翻牌動畫
     const container = document.getElementById('cardsDisplay');
     container.innerHTML = createCardHTML(currentGate[0], false) + createCardHTML(currentGate[1], false);
     
@@ -401,7 +419,6 @@
     document.getElementById('btnDrawGate').style.display = 'none';
     document.getElementById('virtualActionGroup').style.display = 'flex';
     
-    // 如果是成對的門柱，顯示高低預測選單
     if(currentGate[0].val === currentGate[1].val) {
         document.getElementById('pairPredictionArea').style.display = 'block';
     }
@@ -424,19 +441,14 @@
     const c3 = virtualDeck.pop();
     const container = document.getElementById('cardsDisplay');
     
-    // 將第三張牌插入中間
     const card3HTML = document.createElement('div');
     card3HTML.innerHTML = createCardHTML(c3, false);
     container.insertBefore(card3HTML.firstElementChild, container.children[1]);
 
     setTimeout(() => {
-        container.children[1].classList.add('flipped'); // 翻開中間的牌
+        container.children[1].classList.add('flipped');
         updateDeckInfo();
-        
-        // 延遲 800ms 讓玩家看清楚開牌動畫後，進行判定
-        setTimeout(() => {
-            evaluateVirtualResult(c3, bet);
-        }, 800);
+        setTimeout(() => { evaluateVirtualResult(c3, bet); }, 800);
     }, 100);
   }
 
@@ -446,7 +458,7 @@
     let result = '';
 
     if (v1 === v2) {
-       if (v3 === v1) result = 'triple'; // 對子撞
+       if (v3 === v1) result = 'triple'; 
        else {
           let pred = document.getElementById('pairPrediction').value;
           if (pred === 'high' && v3 > v1) result = 'win';
@@ -460,10 +472,9 @@
     }
 
     executeTurn(result, bet);
-    setTimeout(() => { resetVirtualTable(); isActionLocked = false; }, 1500);
+    setTimeout(() => { resetVirtualTable(); isActionLocked = false; }, 1800);
   }
 
-  // --- 核心資金變動引擎 (支援手動與虛擬模式) ---
   function manualPlay(res) { executeTurn(res, parseFloat(document.getElementById('betAmount').value) || 0); }
   
   function executeTurn(res, bet) {
@@ -493,7 +504,6 @@
     updateUI();
   }
 
-  // --- 其他附屬功能 (加碼、轉帳、結算、常亮) ---
   function setPot() {
     pushState();
     const val = parseFloat(document.getElementById('initPot').value) || 0;
@@ -571,7 +581,7 @@
 
   function addLog(m) { const t = new Date().toLocaleTimeString(); historyLog.unshift(`[${t}] ${m}`); if (historyLog.length > 20) historyLog.pop(); renderHistory(); }
   function renderHistory() { document.getElementById('historyBox').innerHTML = historyLog.map(l => `<div style="border-bottom:1px dashed var(--border-color); padding:4px 0">${l}</div>`).join(''); }
-  function resetGame() { if (confirm("確定清除所有紀錄？")) { localStorage.removeItem('DragonGateBackup_v14'); location.reload(); } }
+  function resetGame() { if (confirm("確定清除所有紀錄？")) { localStorage.removeItem('DragonGateBackup_v15'); location.reload(); } }
   function showToast(m, t) { const s = document.getElementById("toast"); s.innerHTML = m; s.className = `show ${t}`; setTimeout(() => s.className = "", 2500); }
   function openModal(id) { document.getElementById(id).style.display = 'block'; }
   function closeModal(id) { document.getElementById(id).style.display = 'none'; }
