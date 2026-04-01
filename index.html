@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>射龍門終極計算器 v13.0</title>
+<title>射龍門終極計算器 v13.1</title>
 <style>
   :root {
     --bg-color: #f4f7f6; --card-bg: #ffffff; --text-color: #333333;
@@ -73,10 +73,11 @@
   #toast.win { background-color: #27ae60; }
   #toast.lose { background-color: #c0392b; }
 
-  .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.75); backdrop-filter: blur(4px); }
-  .modal-content { background-color: var(--card-bg); margin: 8vh auto; padding: 20px; border-radius: 12px; width: 85%; max-width: 450px; max-height: 85vh; overflow-y: auto; position: relative; color: var(--text-color); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-  .close-modal { color: #aaa; position: absolute; right: 15px; top: 10px; font-size: 28px; cursor: pointer; }
+  /* 手機版排版修復：改為外層全版面滑動 */
+  .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.75); backdrop-filter: blur(4px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .modal-content { background-color: var(--card-bg); margin: 10% auto 15% auto; padding: 20px; border-radius: 12px; width: 85%; max-width: 450px; position: relative; color: var(--text-color); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
   
+  .close-modal { color: #aaa; position: absolute; right: 15px; top: 10px; font-size: 28px; cursor: pointer; }
   .modal h3 { margin-top: 0; border-bottom: 2px solid var(--border-color); padding-bottom: 10px; color: var(--heading-color); }
   .modal h4 { color: #e67e22; margin-bottom: 8px; margin-top: 15px; font-size: 16px; }
   .modal ul { padding-left: 20px; margin-top: 0; }
@@ -244,7 +245,6 @@
     if (saved) {
       const d = JSON.parse(saved);
       pot = d.pot; 
-      // 相容舊版本：如果舊資料沒有 initialBalance，預設為 1000
       players = (d.players || []).map(p => ({
           ...p, 
           initialBalance: p.initialBalance !== undefined ? p.initialBalance : 1000 
@@ -308,7 +308,6 @@
     const b = parseFloat(document.getElementById('playerBalance').value) || 0;
     if (!n) return alert("請輸入名稱");
     pushState();
-    // 核心修改：紀錄玩家加入時的 initialBalance，用於最終淨損益結算
     players.push({ name: n, balance: b, initialBalance: b });
     document.getElementById('playerName').value = '';
     addLog(`➕ ${n} 加入 (初始 ${b})`);
@@ -377,28 +376,23 @@
     updateUI(); saveBackupData(); showToast(`加碼 ${amt}`, "addpot");
   }
 
-  // --- 終極核心：一鍵算清轉帳路徑 (Splitwise Algorithm) ---
   function calculateSettlement() {
     if (players.length === 0) return alert("沒有玩家可以結算！");
 
-    // 1. 虛擬平分剩下的底池
     let splitPot = pot / players.length;
     
-    // 2. 計算每個人的淨損益 (最終籌碼 + 平分底池 - 初始籌碼)
     let nets = players.map(p => {
       let init = p.initialBalance !== undefined ? p.initialBalance : 1000;
       let current = p.balance + splitPot;
       return { name: p.name, net: current - init };
     });
 
-    // 3. 拆分債務人(負數)與債權人(正數)
     let debtors = nets.filter(p => p.net < -0.01).map(p => ({name: p.name, debt: Math.abs(p.net)})).sort((a,b) => b.debt - a.debt);
     let creditors = nets.filter(p => p.net > 0.01).map(p => ({name: p.name, credit: p.net})).sort((a,b) => b.credit - a.credit);
 
     let transactions = [];
     let i = 0, j = 0;
 
-    // 4. 貪婪演算法配對轉帳
     while (i < debtors.length && j < creditors.length) {
       let d = debtors[i];
       let c = creditors[j];
@@ -415,7 +409,6 @@
       if (c.credit < 0.01) j++;
     }
 
-    // 5. 渲染結算畫面
     let html = `<div style="background:var(--history-bg); padding:10px; border-radius:8px; margin-bottom:15px; font-size:14px; text-align:center;">
                   目前桌上剩餘底池：<b>$${formatNum(pot)}</b><br>
                   <span style="color:#7f8c8d">(系統已自動將底池平分至各自的結算淨額中)</span>
