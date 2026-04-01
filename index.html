@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>射龍門計算器 v9</title>
+<style>
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; background-color: #f4f7f6; color: #333; padding-bottom: 60px; }
+  .card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: relative; }
+  h2 { margin-top: 0; color: #2c3e50; font-size: 20px; }
+  label { font-size: 14px; color: #7f8c8d; font-weight: bold; }
+  input, select { padding: 10px; margin: 5px 0; width: 100%; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; }
+  button { padding: 12px; font-size: 16px; border-radius: 8px; border: none; cursor: pointer; color: white; font-weight: bold; transition: opacity 0.2s; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-full { width: 100%; background-color: #3498db; margin: 10px 0; }
+  .btn-danger { background-color: #c0392b; width: 100%; margin-top: 10px; }
+  
+  .input-group { display: flex; gap: 10px; align-items: center; margin: 5px 0; }
+  .input-group input { flex: 1; margin: 0; }
+  .btn-allin { background-color: #8e44ad; width: auto; white-space: nowrap; padding: 10px 15px; }
+  
+  .action-grid { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-top: 15px; }
+  .action-btn { width: calc(50% - 4px); margin: 0; padding: 15px 5px; font-size: 15px;}
+  
+  .btn-win { background-color: #2ecc71; }
+  .btn-lose { background-color: #e74c3c; }
+  .btn-post { background-color: #f1c40f; color: #333; }
+  .btn-post-triple { background-color: #d35400; color: white; }
+  
+  .bottom-action-row { display: flex; gap: 8px; margin-top: 8px; align-items: stretch; }
+  .bottom-action-row input { width: 30%; margin: 0; text-align: center; font-weight: bold; }
+  .btn-add-pot { background-color: #34495e; width: 35%; padding: 10px 5px; font-size: 15px; }
+  .btn-pass { background-color: #95a5a6; width: 35%; padding: 10px 5px; font-size: 15px; }
+  
+  .player-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee; font-size: 18px; }
+  .player-row .name { font-weight: bold; color: #34495e; }
+  .player-row input[type="number"] { width: 100px; text-align: right; margin: 0; padding: 8px; font-weight: bold; color: #e74c3c; background-color: #fdf2e9; border: 1px dashed #e67e22; }
+  
+  .pot-display { font-size: 28px; font-weight: bold; color: #e67e22; text-align: center; margin: 10px 0; }
+  
+  #toast { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 1000; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 16px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.3); opacity: 0; transition: opacity 0.3s, bottom 0.3s; }
+  #toast.show { visibility: visible; opacity: 1; bottom: 50px; }
+  #toast.win, #toast.addpot { background-color: #27ae60; }
+  #toast.lose { background-color: #c0392b; }
+  #toast.post { background-color: #f39c12; color: #333; }
+  #toast.triple { background-color: #d35400; }
+  #toast.pass { background-color: #7f8c8d; }
+  #toast.reset { background-color: #8e44ad; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h2>💰 底池與規則設定</h2>
+  <label>欲注入底池之金額 (平攤):</label>
+  <input type="number" id="initPot" value="500">
+  <div class="input-group">
+    <div style="flex:1;"><label>一般撞柱倍數:</label><input type="number" id="postMultiplier" value="2"></div>
+    <div style="flex:1;"><label>對子撞柱倍數:</label><input type="number" id="tripleMultiplier" value="3"></div>
+  </div>
+  <button class="btn-full" onclick="setPot()">🚀 確認注入底池並開始</button>
+  <div class="pot-display">目前桌面上底池: <span id="currentPot">0</span></div>
+  <button class="btn-danger" onclick="resetGame()">🗑️ 清除所有紀錄 (開新局)</button>
+</div>
+
+<div class="card">
+  <h2>👥 玩家管理</h2>
+  <div class="input-group">
+    <input type="text" id="playerName" placeholder="玩家名稱">
+    <input type="number" id="playerBalance" placeholder="初始籌碼" value="1000" style="width: 120px; flex: none;">
+  </div>
+  <button class="btn-full" onclick="addPlayer()">➕ 加入玩家</button>
+</div>
+
+<div class="card">
+  <h2>🎮 遊戲進行區</h2>
+  <label>當前操作玩家:</label>
+  <select id="activePlayer"></select>
+  
+  <label>下注金額:</label>
+  <div class="input-group">
+    <input type="number" id="betAmount" value="50">
+    <button class="btn-allin" onclick="setAllIn()">🔥 梭哈</button>
+  </div>
+  
+  <div class="action-grid">
+    <button class="action-btn btn-win" onclick="playTurn('win')" id="btn-win">✅ 進門 (贏)</button>
+    <button class="action-btn btn-lose" onclick="playTurn('lose')" id="btn-lose">❌ 不進 (輸)</button>
+    <button class="action-btn btn-post" onclick="playTurn('post')" id="btn-post">💥 一般撞</button>
+    <button class="action-btn btn-post-triple" onclick="playTurn('triple')" id="btn-triple">☠️ 對子撞</button>
+  </div>
+  
+  <div class="bottom-action-row">
+    <input type="number" id="addPotAmount" value="20">
+    <button class="btn-add-pot" onclick="addPotEqually()" id="btn-add-pot">💰 平攤加碼</button>
+    <button class="btn-pass" onclick="playTurn('pass')" id="btn-pass">⏭️ 過水</button>
+  </div>
+</div>
+
+<div class="card">
+  <h2>📊 結算表 (可點擊金額手動校正)</h2>
+  <div id="playerList"></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  let pot = 0;
+  let players = [];
+  let multiplier = 2;
+  let tripleMultiplier = 3;
+  let isActionLocked = false;
+
+  // --- 新增：網頁載入時自動讀取本地備份 ---
+  window.onload = function() {
+    loadBackupData();
+  };
+
+  function formatNum(num) {
+    return Number.isInteger(num) ? num : parseFloat(num.toFixed(2));
+  }
+
+  // --- 新增：寫入備份至手機/瀏覽器儲存空間 ---
+  function saveBackupData() {
+    const gameData = {
+      pot: pot,
+      players: players,
+      multiplier: multiplier,
+      tripleMultiplier: tripleMultiplier
+    };
+    localStorage.setItem('DragonGateBackup', JSON.stringify(gameData));
+  }
+
+  // --- 新增：讀取備份資料邏輯 ---
+  function loadBackupData() {
+    const savedData = localStorage.getItem('DragonGateBackup');
+    if (savedData) {
+      try {
+        const parsedData = JSON.parse(savedData);
+        pot = parsedData.pot || 0;
+        players = parsedData.players || [];
+        multiplier = parsedData.multiplier || 2;
+        tripleMultiplier = parsedData.tripleMultiplier || 3;
+        
+        // 將設定欄位的數字還原為上次存檔的狀態
+        document.getElementById('postMultiplier').value = multiplier;
+        document.getElementById('tripleMultiplier').value = tripleMultiplier;
+        
+        updateUI();
+        if (players.length > 0 || pot > 0) {
+          showToast('🔄 已成功恢復上次的遊戲紀錄！', 'pass');
+        }
+      } catch (e) {
+        console.error("備份資料解析錯誤", e);
+      }
+    } else {
+      updateUI();
+    }
+  }
+
+  // --- 新增：強制清除所有紀錄並重置遊戲 ---
+  function resetGame() {
+    if (confirm("⚠️ 警告：確定要清除所有玩家與底池紀錄，重新開始新的一局嗎？此動作無法復原！")) {
+      localStorage.removeItem('DragonGateBackup');
+      pot = 0;
+      players = [];
+      document.getElementById('initPot').value = 500;
+      updateUI();
+      showToast('🗑️ 紀錄已完全清除，請重新加入玩家。', 'reset');
+    }
+  }
+
+  function updateUI() {
+    document.getElementById('currentPot').innerText = formatNum(pot);
+    
+    const select = document.getElementById('activePlayer');
+    const currentIndex = select.value;
+    select.innerHTML = '';
+    players.forEach((p, index) => {
+      let opt = document.createElement('option');
+      opt.value = index;
+      opt.innerHTML = p.name;
+      select.appendChild(opt);
+    });
+    if (currentIndex !== "" && currentIndex < players.length) {
+        select.value = currentIndex;
+    }
+    renderPlayerList();
+  }
+
+  function renderPlayerList() {
+    const list = document.getElementById('playerList');
+    list.innerHTML = '';
+    players.forEach((p, index) => {
+      list.innerHTML += `
+        <div class="player-row">
+          <span class="name">${p.name}</span>
+          <input type="number" step="any" value="${formatNum(p.balance)}" onchange="manualEditBalance(${index}, this.value)">
+        </div>`;
+    });
+  }
+
+  function manualEditBalance(index, newValue) {
+    players[index].balance = parseFloat(newValue) || 0;
+    updateUI();
+    saveBackupData(); // 數據異動，觸發存檔
+  }
+
+  function setPot() {
+    const newPotValue = parseFloat(document.getElementById('initPot').value) || 0;
+    multiplier = parseFloat(document.getElementById('postMultiplier').value) || 2;
+    tripleMultiplier = parseFloat(document.getElementById('tripleMultiplier').value) || 3;
+
+    if (players.length > 0) {
+      const splitAmount = newPotValue / players.length;
+      players.forEach(p => { p.balance -= splitAmount; });
+      pot = newPotValue;
+      showToast(`底池已更新為 ${newPotValue}，每人平攤扣除 ${formatNum(splitAmount)}`, 'addpot');
+    } else {
+      pot = newPotValue;
+      showToast(`初始底池已設定為 ${pot}`, 'pass');
+    }
+    updateUI();
+    saveBackupData(); // 數據異動，觸發存檔
+  }
+
+  function addPlayer() {
+    const name = document.getElementById('playerName').value;
+    const balance = parseFloat(document.getElementById('playerBalance').value) || 0;
+    if (name) {
+      players.push({ name: name, balance: balance });
+      document.getElementById('playerName').value = '';
+      updateUI();
+      document.getElementById('activePlayer').value = players.length - 1; 
+      showToast(`${name} 加入遊戲！`, 'pass');
+      saveBackupData(); // 數據異動，觸發存檔
+    } else {
+      alert("請輸入玩家名稱！");
+    }
+  }
+
+  function setAllIn() {
+    if (pot <= 0) return alert("目前底池為 0，請點擊上方重新設定底池！");
+    document.getElementById('betAmount').value = Math.floor(pot);
+  }
+
+  function showToast(message, type) {
+    const toast = document.getElementById("toast");
+    toast.innerHTML = message;
+    toast.className = `show ${type}`;
+    setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 2500);
+  }
+
+  function advanceToNextPlayer() {
+    const select = document.getElementById('activePlayer');
+    let nextIndex = parseInt(select.value) + 1;
+    if (nextIndex >= players.length) nextIndex = 0;
+    select.value = nextIndex;
+  }
+
+  function toggleButtons(disabled) {
+    const btns = ['btn-win', 'btn-lose', 'btn-post', 'btn-triple', 'btn-pass', 'btn-add-pot'];
+    btns.forEach(id => { document.getElementById(id).disabled = disabled; });
+  }
+
+  function addPotEqually() {
+    if (players.length === 0) return alert("請先加入玩家！");
+    if (isActionLocked) return;
+    const addAmount = parseFloat(document.getElementById('addPotAmount').value) || 0;
+    if (addAmount <= 0) return alert("請輸入加碼金額！");
+    
+    isActionLocked = true;
+    toggleButtons(true);
+    
+    const splitAmount = addAmount / players.length;
+    pot += addAmount;
+    players.forEach(p => { p.balance -= splitAmount; });
+    
+    updateUI();
+    saveBackupData(); // 數據異動，觸發存檔
+    
+    showToast(`臨時加碼 ${addAmount}！每人扣除 ${formatNum(splitAmount)}`, 'addpot');
+    setTimeout(() => { isActionLocked = false; toggleButtons(false); }, 1200);
+  }
+
+  function playTurn(result) {
+    if (players.length === 0) return alert("請先加入玩家！");
+    if (pot <= 0 && result !== 'pass') return alert("底池已空！請至上方「設定底池」進行補注。");
+    if (isActionLocked) return; 
+
+    const playerIndex = document.getElementById('activePlayer').value;
+    const bet = parseFloat(document.getElementById('betAmount').value) || 0;
+    const playerName = players[playerIndex].name;
+    
+    if (result !== 'pass' && bet > pot) return alert("下注金額不能超過底池！");
+    if (result !== 'pass' && bet <= 0) return alert("請輸入有效的下注金額！");
+
+    isActionLocked = true;
+    toggleButtons(true);
+    let toastMsg = "";
+
+    if (result === 'pass') {
+      toastMsg = `【過水】${playerName} Pass！`;
+    } else if (result === 'win') {
+      pot -= bet;
+      players[playerIndex].balance += bet;
+      toastMsg = `✅ ${playerName} 贏得 ${bet}！`;
+      if (pot < 1) {
+          pot = 0; 
+          setTimeout(() => alert(`🎉 恭喜！${playerName} 清空底池！請至上方設定新底池開始下一輪。`), 500);
+      }
+    } else if (result === 'lose') {
+      pot += bet;
+      players[playerIndex].balance -= bet;
+      toastMsg = `❌ ${playerName} 輸了 ${bet}！`;
+    } else if (result === 'post') {
+      const penalty = bet * multiplier;
+      pot += penalty;
+      players[playerIndex].balance -= penalty;
+      toastMsg = `💥 撞柱！${playerName} 賠了 ${penalty}！`;
+    } else if (result === 'triple') {
+      const penalty = bet * tripleMultiplier;
+      pot += penalty;
+      players[playerIndex].balance -= penalty;
+      toastMsg = `☠️ 對子撞！${playerName} 慘賠 ${penalty}！`;
+    }
+    
+    updateUI();
+    saveBackupData(); // 核心：每回合結束後，立即觸發存檔寫入硬碟
+    
+    showToast(toastMsg, result);
+    setTimeout(() => { advanceToNextPlayer(); }, 500);
+    setTimeout(() => { isActionLocked = false; toggleButtons(false); }, 1200);
+  }
+</script>
+
+</body>
+</html>
