@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>射龍門終極計算器 v15</title>
+<title>射龍門終極計算器 v16.0</title>
 <style>
   :root {
     --bg-color: #f4f7f6; --card-bg: #ffffff; --text-color: #333333;
@@ -65,18 +65,19 @@
   
   .pot-display { font-size: 32px; font-weight: bold; color: #e67e22; text-align: center; margin: 10px 0; }
   .wake-lock-status { font-size: 11px; text-align: center; color: #2ecc71; margin-top: -5px; margin-bottom: 10px; }
-  .history-box { max-height: 120px; overflow-y: auto; background: var(--history-bg); padding: 8px; border-radius: 5px; font-size: 13px; border: 1px solid var(--border-color); }
+
+  /* 歷史紀錄區稍微拉高，因為虛擬模式的文字變長了 */
+  .history-box { max-height: 150px; overflow-y: auto; background: var(--history-bg); padding: 8px; border-radius: 5px; font-size: 13px; border: 1px solid var(--border-color); }
   
   #toast { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 3000; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 16px; font-weight: bold; opacity: 0; transition: opacity 0.3s, bottom 0.3s; }
   #toast.show { visibility: visible; opacity: 1; bottom: 50px; }
   #toast.win { background-color: #27ae60; }
   #toast.lose { background-color: #c0392b; }
 
-  /* 彈出視窗：全版面滑動防遮擋設計 */
+  /* 彈出視窗排版 */
   .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.75); backdrop-filter: blur(4px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .modal-content { background-color: var(--card-bg); margin: 10% auto 15% auto; padding: 20px; border-radius: 12px; width: 85%; max-width: 450px; position: relative; color: var(--text-color); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
   .close-modal { color: #aaa; position: absolute; right: 15px; top: 10px; font-size: 28px; cursor: pointer; }
-  
   .modal h3 { margin-top: 0; border-bottom: 2px solid var(--border-color); padding-bottom: 10px; color: var(--heading-color); }
   .modal h4 { color: #e67e22; margin-bottom: 8px; margin-top: 15px; font-size: 16px; border-left: 4px solid #e67e22; padding-left: 8px; }
   .modal ul { padding-left: 20px; margin-top: 5px; }
@@ -94,7 +95,6 @@
 
   .desk-area { background: #27ae60; border-radius: 10px; padding: 15px; text-align: center; display: none; margin-top: 10px; box-shadow: inset 0 0 10px rgba(0,0,0,0.3); }
   .cards-container { display: flex; justify-content: center; gap: 10px; margin: 15px 0; min-height: 120px; perspective: 1000px; }
-  
   .playing-card { width: 80px; height: 115px; perspective: 1000px; cursor: pointer; }
   .card-inner { width: 100%; height: 100%; position: relative; transition: transform 0.6s; transform-style: preserve-3d; }
   .playing-card.flipped .card-inner { transform: rotateY(180deg); }
@@ -224,6 +224,7 @@
       <li>打開虛擬開關，系統會建立<strong>兩副牌 (共 104 張)</strong>的虛擬牌堆，並使用 Fisher-Yates 演算法完美洗牌，徹底杜絕算牌客的機率優勢。</li>
       <li>點擊「翻開門柱」，決定下注金額後點擊「確定下注」，系統會自動翻出第三張牌並<strong>自動判定輸贏、結算彩金</strong>。</li>
       <li>若門柱成對（如 QQ），請透過選單預測第三張是「大」還是「小」。預測錯誤若撞出第三張 Q，則觸發三倍重罰！</li>
+      <li><strong>最新更新</strong>：虛擬模式下，歷史紀錄會詳細列出你的門柱與抽出的卡牌，杜絕任何爭議！</li>
     </ul>
 
     <h4>3. 🎮 傳統手動模式與快捷操作</h4>
@@ -300,11 +301,11 @@
   }
 
   function saveBackupData() {
-    localStorage.setItem('DragonGateBackup_v15', JSON.stringify({ pot, players, historyLog }));
+    localStorage.setItem('DragonGateBackup_v16', JSON.stringify({ pot, players, historyLog }));
   }
 
   function loadBackupData() {
-    const saved = localStorage.getItem('DragonGateBackup_v15');
+    const saved = localStorage.getItem('DragonGateBackup_v16');
     if (saved) {
       const d = JSON.parse(saved);
       pot = d.pot; 
@@ -358,7 +359,6 @@
     virtualDeck = [];
     const suits = ['♠', '♥', '♦', '♣'];
     const ranks = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-    // 迴圈跑 2 次，產生 104 張牌
     for(let d = 0; d < 2; d++) {
       for(let s of suits) {
         for(let i=0; i<ranks.length; i++) {
@@ -366,7 +366,6 @@
         }
       }
     }
-    // Fisher-Yates 洗牌演算法
     for (let i = virtualDeck.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [virtualDeck[i], virtualDeck[j]] = [virtualDeck[j], virtualDeck[i]];
@@ -375,6 +374,12 @@
   }
 
   function updateDeckInfo() { document.getElementById('deckInfo').innerText = `牌庫剩餘: ${virtualDeck.length} 張 (雙副牌)`; }
+
+  // 格式化卡片為文字，用於歷史紀錄顯示 (例如：♠A)
+  function formatCardText(c) {
+    if(!c) return '';
+    return c.suit + c.rank;
+  }
 
   function createCardHTML(card, isFlipped = false) {
     if(!card) return '';
@@ -403,190 +408,4 @@
   function drawGate() {
     if (players.length === 0) return alert("請先加入玩家！");
     if (pot <= 0) return alert("底池空了！請先設定底池。");
-    if (virtualDeck.length < 5) { initDeck(); addLog("🔄 牌庫到底，已重新洗牌(104張)"); }
-    
-    currentGate = [virtualDeck.pop(), virtualDeck.pop()];
-    gateDrawn = true;
-    
-    const container = document.getElementById('cardsDisplay');
-    container.innerHTML = createCardHTML(currentGate[0], false) + createCardHTML(currentGate[1], false);
-    
-    setTimeout(() => {
-        container.children[0].classList.add('flipped');
-        container.children[1].classList.add('flipped');
-    }, 100);
-
-    document.getElementById('btnDrawGate').style.display = 'none';
-    document.getElementById('virtualActionGroup').style.display = 'flex';
-    
-    if(currentGate[0].val === currentGate[1].val) {
-        document.getElementById('pairPredictionArea').style.display = 'block';
-    }
-    updateDeckInfo();
-  }
-
-  function virtualPass() {
-    if(!gateDrawn) return;
-    executeTurn('pass', 0);
-    resetVirtualTable();
-  }
-
-  function virtualShoot() {
-    if(!gateDrawn || isActionLocked) return;
-    const bet = parseFloat(document.getElementById('betAmount').value) || 0;
-    if (bet > pot) return alert("下注金額不能超過底池！");
-    if (bet <= 0) return alert("請輸入有效的下注金額！");
-
-    isActionLocked = true;
-    const c3 = virtualDeck.pop();
-    const container = document.getElementById('cardsDisplay');
-    
-    const card3HTML = document.createElement('div');
-    card3HTML.innerHTML = createCardHTML(c3, false);
-    container.insertBefore(card3HTML.firstElementChild, container.children[1]);
-
-    setTimeout(() => {
-        container.children[1].classList.add('flipped');
-        updateDeckInfo();
-        setTimeout(() => { evaluateVirtualResult(c3, bet); }, 800);
-    }, 100);
-  }
-
-  function evaluateVirtualResult(c3, bet) {
-    let v1 = currentGate[0].val; let v2 = currentGate[1].val; let v3 = c3.val;
-    let min = Math.min(v1, v2); let max = Math.max(v1, v2);
-    let result = '';
-
-    if (v1 === v2) {
-       if (v3 === v1) result = 'triple'; 
-       else {
-          let pred = document.getElementById('pairPrediction').value;
-          if (pred === 'high' && v3 > v1) result = 'win';
-          else if (pred === 'low' && v3 < v1) result = 'win';
-          else result = 'lose';
-       }
-    } else {
-       if (v3 === min || v3 === max) result = 'post';
-       else if (v3 > min && v3 < max) result = 'win';
-       else result = 'lose';
-    }
-
-    executeTurn(result, bet);
-    setTimeout(() => { resetVirtualTable(); isActionLocked = false; }, 1800);
-  }
-
-  function manualPlay(res) { executeTurn(res, parseFloat(document.getElementById('betAmount').value) || 0); }
-  
-  function executeTurn(res, bet) {
-    if (players.length === 0) return alert("請先加入玩家");
-    if (pot <= 0 && res !== 'pass') return alert("底池空了");
-
-    pushState();
-    const idx = document.getElementById('activePlayer').value;
-    const p = players[idx];
-    let msg = ""; let type = res;
-
-    if (res === 'pass') { msg = `【過水】${p.name} Pass`; addLog(`⏭️ ${p.name} 過水`); }
-    else {
-      if (bet > pot) { historyStack.pop(); return alert("超過底池"); }
-      if (res === 'win') { pot -= bet; p.balance += bet; msg = `✅ ${p.name} 贏得 ${bet}`; addLog(`✅ ${p.name} 贏 ${bet}`); }
-      else if (res === 'lose') { pot += bet; p.balance -= bet; msg = `❌ ${p.name} 輸了 ${bet}`; addLog(`❌ ${p.name} 輸 ${bet}`); }
-      else if (res === 'post') { const pen = bet * 2; pot += pen; p.balance -= pen; msg = `💥 撞柱！${p.name} 賠 ${pen}`; addLog(`💥 ${p.name} 撞柱賠 ${pen}`); }
-      else if (res === 'triple') { const pen = bet * 3; pot += pen; p.balance -= pen; msg = `☠️ 對子撞！${p.name} 賠 ${pen}`; addLog(`☠️ ${p.name} 對子撞賠 ${pen}`); }
-    }
-
-    updateUI(); saveBackupData(); showToast(msg, type);
-    
-    if (pot < 1 && res === 'win') { pot = 0; setTimeout(() => alert(`🎉 恭喜！${p.name} 清空底池！請至上方重新注入。`), 500); }
-
-    let next = parseInt(idx) + 1; if (next >= players.length) next = 0;
-    document.getElementById('activePlayer').value = next;
-    updateUI();
-  }
-
-  function setPot() {
-    pushState();
-    const val = parseFloat(document.getElementById('initPot').value) || 0;
-    if (players.length > 0) {
-      const split = val / players.length;
-      players.forEach(p => p.balance -= split);
-      pot = val; addLog(`🚀 注入底池 ${val}，每人平攤扣除 ${formatNum(split)}`);
-    } else { pot = val; addLog(`🚀 設定初始底池 ${val}`); }
-    updateUI(); saveBackupData();
-  }
-
-  function addPlayer() {
-    const n = document.getElementById('playerName').value;
-    const b = parseFloat(document.getElementById('playerBalance').value) || 0;
-    if (!n) return alert("請輸入名稱");
-    pushState();
-    players.push({ name: n, balance: b, initialBalance: b });
-    document.getElementById('playerName').value = '';
-    addLog(`➕ ${n} 加入`); updateUI(); saveBackupData();
-  }
-
-  function addPotEqually(isVirtual = false) {
-    const amtId = isVirtual ? 'addPotAmountV' : 'addPotAmount';
-    const amt = parseFloat(document.getElementById(amtId).value) || 0;
-    if (amt <= 0 || players.length === 0) return;
-    pushState();
-    const split = amt / players.length;
-    pot += amt; players.forEach(p => p.balance -= split);
-    addLog(`💰 平攤加碼 ${amt} (每人-${formatNum(split)})`);
-    updateUI(); saveBackupData(); showToast(`加碼 ${amt}`, "addpot");
-  }
-
-  function requestWakeLock() {
-    if ('wakeLock' in navigator) {
-      navigator.wakeLock.request('screen').then(lock => {
-        wakeLock = lock; document.getElementById('wakeStatus').innerText = "● 螢幕常亮已啟動";
-      }).catch(err => { document.getElementById('wakeStatus').innerText = "○ 此設備不支援常亮"; });
-    }
-  }
-
-  function executeTransfer() {
-    const f = parseInt(document.getElementById('transferFrom').value);
-    const t = parseInt(document.getElementById('transferTo').value);
-    const amt = parseFloat(document.getElementById('transferAmount').value) || 0;
-    if (f === t) return alert("不能轉帳給自己！");
-    if (amt <= 0) return alert("請輸入有效金額");
-    pushState(); players[f].balance -= amt; players[t].balance += amt;
-    addLog(`💸 轉帳: ${players[f].name} 給予 ${players[t].name} $${amt}`);
-    closeModal('transferModal'); updateUI(); saveBackupData(); showToast("💸 轉帳成功！", "pass");
-  }
-
-  function sortByRank() { pushState(); players.sort((a, b) => b.balance - a.balance); addLog(`🏆 重新排行`); updateUI(); saveBackupData(); }
-
-  function calculateSettlement() {
-    if (players.length === 0) return alert("沒有玩家可以結算！");
-    let splitPot = pot / players.length;
-    let nets = players.map(p => ({ name: p.name, net: (p.balance + splitPot) - (p.initialBalance !== undefined ? p.initialBalance : 1000) }));
-    let debtors = nets.filter(p => p.net < -0.01).map(p => ({name: p.name, debt: Math.abs(p.net)})).sort((a,b) => b.debt - a.debt);
-    let creditors = nets.filter(p => p.net > 0.01).map(p => ({name: p.name, credit: p.net})).sort((a,b) => b.credit - a.credit);
-    let transactions = []; let i = 0, j = 0;
-
-    while (i < debtors.length && j < creditors.length) {
-      let amount = Math.min(debtors[i].debt, creditors[j].credit);
-      if (amount > 0.01) transactions.push(`<strong style="color:#e74c3c">${debtors[i].name}</strong> ➡️ <strong style="color:#2ecc71">${creditors[j].name}</strong> : $<b>${formatNum(amount)}</b>`);
-      debtors[i].debt -= amount; creditors[j].credit -= amount;
-      if (debtors[i].debt < 0.01) i++;
-      if (creditors[j].credit < 0.01) j++;
-    }
-
-    let html = `<div style="background:var(--history-bg); padding:10px; border-radius:8px; margin-bottom:15px; font-size:14px; text-align:center;">剩餘底池：<b>$${formatNum(pot)}</b><br><span style="color:#7f8c8d">(已自動平分至淨額)</span></div><ul style="padding-left:0;">`;
-    if (transactions.length === 0) html += "<li style='list-style:none; text-align:center;'>🎉 大家扯平！</li>";
-    else transactions.forEach(t => html += `<li style="margin-bottom:12px; font-size: 16px; list-style:none; border-bottom:1px dashed var(--border-color); padding-bottom:8px;">${t}</li>`);
-    document.getElementById('settlementResult').innerHTML = html + "</ul>"; openModal('settlementModal');
-  }
-
-  function addLog(m) { const t = new Date().toLocaleTimeString(); historyLog.unshift(`[${t}] ${m}`); if (historyLog.length > 20) historyLog.pop(); renderHistory(); }
-  function renderHistory() { document.getElementById('historyBox').innerHTML = historyLog.map(l => `<div style="border-bottom:1px dashed var(--border-color); padding:4px 0">${l}</div>`).join(''); }
-  function resetGame() { if (confirm("確定清除所有紀錄？")) { localStorage.removeItem('DragonGateBackup_v15'); location.reload(); } }
-  function showToast(m, t) { const s = document.getElementById("toast"); s.innerHTML = m; s.className = `show ${t}`; setTimeout(() => s.className = "", 2500); }
-  function openModal(id) { document.getElementById(id).style.display = 'block'; }
-  function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-  window.onclick = function(e) { if (e.target.classList.contains('modal')) e.target.style.display = "none"; }
-</script>
-
-</body>
-</html>
+    if (virtualDeck.length < 5) { initDeck(); addLog("🔄 牌庫到底，已重新洗牌
