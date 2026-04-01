@@ -3,26 +3,47 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>射龍門計算器 v10</title>
+<title>射龍門終極計算器 v12</title>
 <style>
-  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; background-color: #f4f7f6; color: #333; padding-bottom: 60px; margin: 0; }
-  .card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: relative; }
+  :root {
+    --bg-color: #f4f7f6; --card-bg: #ffffff; --text-color: #333333;
+    --heading-color: #2c3e50; --border-color: #cccccc; --input-bg: #ffffff;
+    --history-bg: #f9f9f9; --highlight-bg: rgba(241, 196, 15, 0.3);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-color: #121212; --card-bg: #1e1e1e; --text-color: #e0e0e0;
+      --heading-color: #f39c12; --border-color: #444444; --input-bg: #2c2c2c;
+      --history-bg: #2a2a2a; --highlight-bg: rgba(243, 156, 18, 0.4);
+    }
+  }
+
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; background-color: var(--bg-color); color: var(--text-color); padding-bottom: 80px; margin: 0; transition: all 0.3s; }
+  .card { background: var(--card-bg); border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); position: relative; }
   
-  /* 標題與說明按鈕排版 */
   .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-  .header-row h2 { margin: 0; color: #2c3e50; font-size: 20px; }
-  .btn-help { background-color: #f39c12; color: white; border: none; padding: 6px 12px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+  .header-row h2 { margin: 0; color: var(--heading-color); font-size: 20px; }
   
-  label { font-size: 14px; color: #7f8c8d; font-weight: bold; }
-  input, select { padding: 10px; margin: 5px 0; width: 100%; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; }
-  button { padding: 12px; font-size: 16px; border-radius: 8px; border: none; cursor: pointer; color: white; font-weight: bold; transition: opacity 0.2s; }
+  .btn-help { background-color: #f39c12; color: white; border: none; padding: 6px 12px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 14px; }
+  label { font-size: 13px; color: #7f8c8d; font-weight: bold; }
+  input, select { padding: 10px; margin: 5px 0; width: 100%; box-sizing: border-box; border: 1px solid var(--border-color); border-radius: 5px; font-size: 16px; background-color: var(--input-bg); color: var(--text-color); }
+  
+  button { padding: 12px; font-size: 16px; border-radius: 8px; border: none; cursor: pointer; color: white; font-weight: bold; transition: opacity 0.2s, transform 0.1s; }
+  button:active { transform: scale(0.98); }
   button:disabled { opacity: 0.5; cursor: not-allowed; }
+  
   .btn-full { width: 100%; background-color: #3498db; margin: 10px 0; }
   .btn-danger { background-color: #c0392b; width: 100%; margin-top: 10px; }
+  .btn-undo { background-color: #636e72; flex: 1; }
+  .btn-transfer { background-color: #00b894; flex: 1; }
+  .btn-sort { background-color: #0984e3; width: 100%; margin-top: 10px; }
   
-  .input-group { display: flex; gap: 10px; align-items: center; margin: 5px 0; }
+  .input-group { display: flex; gap: 8px; align-items: center; margin: 5px 0; }
   .input-group input { flex: 1; margin: 0; }
   .btn-allin { background-color: #8e44ad; width: auto; white-space: nowrap; padding: 10px 15px; }
+  
+  .quick-bet-row { display: flex; gap: 5px; margin-top: 5px; }
+  .btn-quick { background-color: #8e44ad; font-size: 13px; padding: 8px 4px; flex: 1; }
   
   .action-grid { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-top: 15px; }
   .action-btn { width: calc(50% - 4px); margin: 0; padding: 15px 5px; font-size: 15px;}
@@ -33,81 +54,72 @@
   .btn-post-triple { background-color: #d35400; color: white; }
   
   .bottom-action-row { display: flex; gap: 8px; margin-top: 8px; align-items: stretch; }
-  .bottom-action-row input { width: 30%; margin: 0; text-align: center; font-weight: bold; }
-  .btn-add-pot { background-color: #34495e; width: 35%; padding: 10px 5px; font-size: 15px; }
-  .btn-pass { background-color: #95a5a6; width: 35%; padding: 10px 5px; font-size: 15px; }
+  .bottom-action-row input { width: 25%; margin: 0; text-align: center; }
+  .btn-add-pot { background-color: #34495e; width: 40%; font-size: 14px; }
+  .btn-pass { background-color: #95a5a6; width: 35%; font-size: 14px; }
   
-  .player-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee; font-size: 18px; }
-  .player-row .name { font-weight: bold; color: #34495e; }
-  .player-row input[type="number"] { width: 100px; text-align: right; margin: 0; padding: 8px; font-weight: bold; color: #e74c3c; background-color: #fdf2e9; border: 1px dashed #e67e22; }
+  .player-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 5px; border-bottom: 1px solid var(--border-color); font-size: 18px; }
+  .active-player-row { background-color: var(--highlight-bg); border-radius: 5px; border-bottom: none; font-weight: bold; }
+  .player-row input[type="number"] { width: 100px; text-align: right; margin: 0; padding: 8px; color: #e74c3c; background-color: var(--input-bg); border: 1px dashed #e67e22; }
   
-  .pot-display { font-size: 28px; font-weight: bold; color: #e67e22; text-align: center; margin: 10px 0; }
-  
-  #toast { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 1000; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 16px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.3); opacity: 0; transition: opacity 0.3s, bottom 0.3s; }
-  #toast.show { visibility: visible; opacity: 1; bottom: 50px; }
-  #toast.win, #toast.addpot { background-color: #27ae60; }
-  #toast.lose { background-color: #c0392b; }
-  #toast.post { background-color: #f39c12; color: #333; }
-  #toast.triple { background-color: #d35400; }
-  #toast.pass { background-color: #7f8c8d; }
-  #toast.reset { background-color: #8e44ad; }
+  .pot-display { font-size: 32px; font-weight: bold; color: #e67e22; text-align: center; margin: 10px 0; }
+  .wake-lock-status { font-size: 11px; text-align: center; color: #2ecc71; margin-top: -5px; margin-bottom: 10px; }
 
-  /* 彈出式說明視窗 (Modal) 樣式 */
-  .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(2px); }
-  .modal-content { background-color: #fff; margin: 10vh auto; padding: 20px; border-radius: 12px; width: 90%; max-width: 450px; max-height: 80vh; overflow-y: auto; box-shadow: 0 5px 15px rgba(0,0,0,0.3); position: relative; }
-  .close-modal { color: #aaa; position: absolute; right: 15px; top: 10px; font-size: 28px; font-weight: bold; cursor: pointer; }
-  .close-modal:hover, .close-modal:focus { color: #333; text-decoration: none; }
-  .modal h3 { margin-top: 0; color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-  .modal h4 { color: #e67e22; margin-bottom: 5px; }
-  .modal ul { padding-left: 20px; margin-top: 0; }
-  .modal li { margin-bottom: 8px; line-height: 1.5; font-size: 15px; }
+  .history-box { max-height: 120px; overflow-y: auto; background: var(--history-bg); padding: 8px; border-radius: 5px; font-size: 13px; border: 1px solid var(--border-color); }
+  
+  #toast { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 3000; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 16px; font-weight: bold; opacity: 0; transition: opacity 0.3s, bottom 0.3s; }
+  #toast.show { visibility: visible; opacity: 1; bottom: 50px; }
+  #toast.win { background-color: #27ae60; }
+  #toast.lose { background-color: #c0392b; }
+
+  .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.75); backdrop-filter: blur(4px); }
+  .modal-content { background-color: var(--card-bg); margin: 8vh auto; padding: 20px; border-radius: 12px; width: 85%; max-width: 400px; max-height: 85vh; overflow-y: auto; position: relative; color: var(--text-color); }
+  .close-modal { color: #aaa; position: absolute; right: 15px; top: 10px; font-size: 28px; cursor: pointer; }
 </style>
 </head>
 <body>
 
 <div class="card">
   <div class="header-row">
-    <h2>💰 底池與規則設定</h2>
-    <button class="btn-help" onclick="openHelp()">📖 使用說明</button>
+    <h2>💰 底池與規則</h2>
+    <button class="btn-help" onclick="openModal('helpModal')">📖 說明</button>
   </div>
-  <label>欲注入底池之金額 (平攤):</label>
+  <div class="wake-lock-status" id="wakeStatus">● 螢幕常亮已啟動</div>
+  <label>注入底池金額:</label>
   <input type="number" id="initPot" value="500">
+  <button class="btn-full" onclick="setPot()">🚀 確認注入底池</button>
+  <div class="pot-display"><small style="font-size: 14px;">目前底池</small><br><span id="currentPot">0</span></div>
   <div class="input-group">
-    <div style="flex:1;"><label>一般撞倍數:</label><input type="number" id="postMultiplier" value="2"></div>
-    <div style="flex:1;"><label>對子撞倍數:</label><input type="number" id="tripleMultiplier" value="3"></div>
+      <button class="btn-undo" onclick="undo()">↩️ 復原上步</button>
+      <button class="btn-transfer" onclick="openModal('transferModal')">💸 玩家轉帳</button>
   </div>
-  <button class="btn-full" onclick="setPot()">🚀 確認注入底池並開始</button>
-  <div class="pot-display">目前桌面上底池: <span id="currentPot">0</span></div>
-  <button class="btn-danger" onclick="resetGame()">🗑️ 清除所有紀錄 (開新局)</button>
 </div>
 
 <div class="card">
   <h2>👥 玩家管理</h2>
   <div class="input-group">
-    <input type="text" id="playerName" placeholder="玩家名稱">
-    <input type="number" id="playerBalance" placeholder="初始籌碼" value="1000" style="width: 120px; flex: none;">
+    <input type="text" id="playerName" placeholder="名稱">
+    <input type="number" id="playerBalance" value="1000" style="width: 100px; flex: none;">
   </div>
   <button class="btn-full" onclick="addPlayer()">➕ 加入玩家</button>
 </div>
 
 <div class="card">
-  <h2>🎮 遊戲進行區</h2>
-  <label>當前操作玩家:</label>
-  <select id="activePlayer"></select>
-  
+  <h2>🎮 遊戲進行</h2>
+  <select id="activePlayer" onchange="updateUI()"></select>
   <label>下注金額:</label>
-  <div class="input-group">
-    <input type="number" id="betAmount" value="50">
-    <button class="btn-allin" onclick="setAllIn()">🔥 梭哈</button>
+  <input type="number" id="betAmount" value="50">
+  <div class="quick-bet-row">
+    <button class="btn-quick" onclick="setFraction(1/3)">1/3</button>
+    <button class="btn-quick" onclick="setFraction(1/2)">1/2</button>
+    <button class="btn-quick" onclick="setFraction(1)">🔥 梭哈</button>
   </div>
-  
   <div class="action-grid">
-    <button class="action-btn btn-win" onclick="playTurn('win')" id="btn-win">✅ 進門 (贏)</button>
-    <button class="action-btn btn-lose" onclick="playTurn('lose')" id="btn-lose">❌ 不進 (輸)</button>
-    <button class="action-btn btn-post" onclick="playTurn('post')" id="btn-post">💥 一般撞</button>
+    <button class="action-btn btn-win" onclick="playTurn('win')" id="btn-win">✅ 進門</button>
+    <button class="action-btn btn-lose" onclick="playTurn('lose')" id="btn-lose">❌ 不進</button>
+    <button class="action-btn btn-post" onclick="playTurn('post')" id="btn-post">💥 撞柱</button>
     <button class="action-btn btn-post-triple" onclick="playTurn('triple')" id="btn-triple">☠️ 對子撞</button>
   </div>
-  
   <div class="bottom-action-row">
     <input type="number" id="addPotAmount" value="20">
     <button class="btn-add-pot" onclick="addPotEqually()" id="btn-add-pot">💰 平攤加碼</button>
@@ -116,268 +128,242 @@
 </div>
 
 <div class="card">
-  <h2>📊 結算表 (可點擊金額手動校正)</h2>
+  <h2>📊 結算排行榜</h2>
   <div id="playerList"></div>
+  <button class="btn-sort" onclick="sortByRank()">🏆 依金額排行 (由高到低)</button>
+</div>
+
+<div class="card">
+  <h2>📜 歷史紀錄</h2>
+  <div id="historyBox" class="history-box"></div>
+  <button class="btn-danger" onclick="resetGame()">🗑️ 清除所有紀錄 (開新局)</button>
+</div>
+
+<div id="helpModal" class="modal">
+  <div class="modal-content">
+    <span class="close-modal" onclick="closeModal('helpModal')">&times;</span>
+    <h3>💡 射龍門 - 終極指南</h3>
+    <h4>1. ↩️ 復原功能 (Undo)</h4>
+    <ul><li>按錯了？點擊「復原上步」即可讓底池與籌碼回到動作前的狀態。</li></ul>
+    <h4>2. 💸 玩家轉帳</h4>
+    <ul><li>玩家私下借錢或給錢時使用，不影響底池。</li></ul>
+    <h4>3. 🏆 排行榜</h4>
+    <ul><li>點擊「依金額排行」，系統會自動幫大家從小排到大，結算超方便。</li></ul>
+    <h4>4. 🔆 螢幕常亮</h4>
+    <ul><li>只要打開此網頁，手機就不會自動休眠鎖定，方便大家輪流操作。</li></ul>
+  </div>
+</div>
+
+<div id="transferModal" class="modal">
+  <div class="modal-content">
+    <span class="close-modal" onclick="closeModal('transferModal')">&times;</span>
+    <h3>💸 玩家內部轉帳</h3>
+    <label>從誰給錢 (From):</label>
+    <select id="transferFrom"></select>
+    <label>給誰錢 (To):</label>
+    <select id="transferTo"></select>
+    <label>轉帳金額:</label>
+    <input type="number" id="transferAmount" value="100">
+    <button class="btn-full" style="background-color:#00b894" onclick="executeTransfer()">確認轉帳</button>
+  </div>
 </div>
 
 <div id="toast"></div>
 
-<div id="helpModal" class="modal">
-  <div class="modal-content">
-    <span class="close-modal" onclick="closeHelp()">&times;</span>
-    <h3>💡 射龍門計算器 - 快速上手指南</h3>
-    
-    <h4>1. 🎲 遊戲準備 (開局)</h4>
-    <ul>
-      <li><strong>設定底池</strong>：輸入初始彩金，點擊「確認注入」。系統會自動從大家身上<strong>平攤扣除</strong>來建立底池。</li>
-      <li><strong>開新局</strong>：如果想清除之前的紀錄，點擊最上方的「🗑️ 清除所有紀錄」。</li>
-    </ul>
-
-    <h4>2. 🎮 基礎按鈕怎麼按？</h4>
-    <ul>
-      <li><strong>✅ 進門 (贏)</strong>：第三張牌在中間，你贏走下注金。</li>
-      <li><strong>❌ 不進 (輸)</strong>：第三張牌在外面，你賠掉下注金給底池。</li>
-      <li><strong>💥 一般撞</strong>：第三張牌跟前兩張的其中一張一樣，慘賠設定的倍數！</li>
-      <li><strong>☠️ 對子撞</strong>：前兩張一樣(如QQ)，第三張又一樣(QQQ)，恭喜慘賠對子專屬倍數！</li>
-      <li><strong>⏭️ 過水</strong>：牌面太爛不想玩，點過水直接換下一位。</li>
-    </ul>
-
-    <h4>3. 🛠️ 特殊狀況處理</h4>
-    <ul>
-      <li><strong>底池乾了</strong>：上方重新輸入金額點擊「確認注入」，大家重新平攤出錢。</li>
-      <li><strong>臨時加碼</strong>：下方輸入金額點擊「💰 平攤加碼」，系統自動幫所有人扣錢加進底池。</li>
-      <li><strong>按錯/補錢</strong>：滑到最下方的「結算表」，<strong>直接點擊數字就能手動修改</strong>個人籌碼。</li>
-    </ul>
-
-    <h4>4. 💾 斷線防護</h4>
-    <ul>
-      <li>系統具備「即時自動備份」，不小心滑掉網頁或重新整理，所有金額都會完美還原！</li>
-    </ul>
-  </div>
-</div>
-
 <script>
-  let pot = 0;
-  let players = [];
-  let multiplier = 2;
-  let tripleMultiplier = 3;
-  let isActionLocked = false;
+  let pot = 0; let players = []; let historyLog = []; let historyStack = [];
+  let multiplier = 2; let tripleMultiplier = 3; let isActionLocked = false;
+  let wakeLock = null;
 
-  window.onload = function() {
-    loadBackupData();
-  };
+  window.onload = function() { loadBackupData(); requestWakeLock(); };
 
-  function formatNum(num) {
-    return Number.isInteger(num) ? num : parseFloat(num.toFixed(2));
+  function formatNum(num) { return Number.isInteger(num) ? num : parseFloat(num.toFixed(2)); }
+
+  // --- 核心：快照備份 (用於 Undo) ---
+  function pushState() {
+    const state = JSON.stringify({ pot, players, historyLog: [...historyLog] });
+    historyStack.push(state);
+    if (historyStack.length > 10) historyStack.shift(); 
   }
 
-  function saveBackupData() {
-    const gameData = { pot: pot, players: players, multiplier: multiplier, tripleMultiplier: tripleMultiplier };
-    localStorage.setItem('DragonGateBackup', JSON.stringify(gameData));
+  function undo() {
+    if (historyStack.length === 0) return alert("沒有紀錄可以復原！");
+    const lastState = JSON.parse(historyStack.pop());
+    pot = lastState.pot; players = lastState.players; historyLog = lastState.historyLog;
+    updateUI(); renderHistory(); saveBackupData();
+    showToast("⏪ 已成功復原上一步！", "pass");
   }
 
-  function loadBackupData() {
-    const savedData = localStorage.getItem('DragonGateBackup');
-    if (savedData) {
-      try {
-        const parsedData = JSON.parse(savedData);
-        pot = parsedData.pot || 0;
-        players = parsedData.players || [];
-        multiplier = parsedData.multiplier || 2;
-        tripleMultiplier = parsedData.tripleMultiplier || 3;
-        document.getElementById('postMultiplier').value = multiplier;
-        document.getElementById('tripleMultiplier').value = tripleMultiplier;
-        updateUI();
-      } catch (e) { console.error("備份資料解析錯誤", e); }
-    } else {
-      updateUI();
+  function requestWakeLock() {
+    if ('wakeLock' in navigator) {
+      navigator.wakeLock.request('screen').then(lock => {
+        wakeLock = lock;
+        document.getElementById('wakeStatus').innerText = "● 螢幕常亮已啟動";
+      }).catch(err => {
+        document.getElementById('wakeStatus').innerText = "○ 此設備不支援常亮";
+      });
     }
   }
 
-  function resetGame() {
-    if (confirm("⚠️ 警告：確定要清除所有玩家與底池紀錄，重新開始新的一局嗎？此動作無法復原！")) {
-      localStorage.removeItem('DragonGateBackup');
-      pot = 0; players = [];
-      document.getElementById('initPot').value = 500;
-      updateUI();
-      showToast('🗑️ 紀錄已完全清除，請重新加入玩家。', 'reset');
+  function saveBackupData() {
+    localStorage.setItem('DragonGateBackup_v12', JSON.stringify({ pot, players, historyLog }));
+  }
+
+  function loadBackupData() {
+    const saved = localStorage.getItem('DragonGateBackup_v12');
+    if (saved) {
+      const d = JSON.parse(saved);
+      pot = d.pot; players = d.players; historyLog = d.historyLog || [];
+      updateUI(); renderHistory();
     }
   }
 
   function updateUI() {
     document.getElementById('currentPot').innerText = formatNum(pot);
     const select = document.getElementById('activePlayer');
+    const fromSelect = document.getElementById('transferFrom');
+    const toSelect = document.getElementById('transferTo');
     const currentIndex = select.value;
-    select.innerHTML = '';
-    players.forEach((p, index) => {
-      let opt = document.createElement('option');
-      opt.value = index;
-      opt.innerHTML = p.name;
-      select.appendChild(opt);
+
+    [select, fromSelect, toSelect].forEach(s => {
+      s.innerHTML = '';
+      players.forEach((p, i) => {
+        let opt = document.createElement('option'); opt.value = i; opt.innerHTML = p.name;
+        s.appendChild(opt);
+      });
     });
-    if (currentIndex !== "" && currentIndex < players.length) { select.value = currentIndex; }
+    if (currentIndex !== "" && currentIndex < players.length) select.value = currentIndex;
     renderPlayerList();
   }
 
   function renderPlayerList() {
     const list = document.getElementById('playerList');
+    const activeIdx = parseInt(document.getElementById('activePlayer').value);
     list.innerHTML = '';
-    players.forEach((p, index) => {
-      list.innerHTML += `
-        <div class="player-row">
-          <span class="name">${p.name}</span>
-          <input type="number" step="any" value="${formatNum(p.balance)}" onchange="manualEditBalance(${index}, this.value)">
-        </div>`;
+    players.forEach((p, i) => {
+      const activeClass = (i === activeIdx) ? 'active-player-row' : '';
+      list.innerHTML += `<div class="player-row ${activeClass}"><span class="name">${p.name}</span>
+        <input type="number" step="any" value="${formatNum(p.balance)}" onchange="manualEdit(${i}, this.value)"></div>`;
     });
   }
 
-  function manualEditBalance(index, newValue) {
-    players[index].balance = parseFloat(newValue) || 0;
-    updateUI();
-    saveBackupData(); 
+  function manualEdit(i, val) {
+    pushState();
+    players[i].balance = parseFloat(val) || 0;
+    saveBackupData(); updateUI();
   }
 
   function setPot() {
-    const newPotValue = parseFloat(document.getElementById('initPot').value) || 0;
-    multiplier = parseFloat(document.getElementById('postMultiplier').value) || 2;
-    tripleMultiplier = parseFloat(document.getElementById('tripleMultiplier').value) || 3;
-
+    pushState();
+    const val = parseFloat(document.getElementById('initPot').value) || 0;
     if (players.length > 0) {
-      const splitAmount = newPotValue / players.length;
-      players.forEach(p => { p.balance -= splitAmount; });
-      pot = newPotValue;
-      showToast(`底池已更新為 ${newPotValue}，每人平攤扣除 ${formatNum(splitAmount)}`, 'addpot');
+      const split = val / players.length;
+      players.forEach(p => p.balance -= split);
+      pot = val;
+      addLog(`🚀 注入底池 ${val}，每人平攤扣除 ${formatNum(split)}`);
     } else {
-      pot = newPotValue;
-      showToast(`初始底池已設定為 ${pot}`, 'pass');
+      pot = val; addLog(`🚀 設定初始底池 ${val}`);
     }
-    updateUI();
-    saveBackupData(); 
+    updateUI(); saveBackupData();
   }
 
   function addPlayer() {
-    const name = document.getElementById('playerName').value;
-    const balance = parseFloat(document.getElementById('playerBalance').value) || 0;
-    if (name) {
-      players.push({ name: name, balance: balance });
-      document.getElementById('playerName').value = '';
-      updateUI();
-      document.getElementById('activePlayer').value = players.length - 1; 
-      showToast(`${name} 加入遊戲！`, 'pass');
-      saveBackupData(); 
-    } else { alert("請輸入玩家名稱！"); }
+    const n = document.getElementById('playerName').value;
+    const b = parseFloat(document.getElementById('playerBalance').value) || 0;
+    if (!n) return alert("請輸入名稱");
+    pushState();
+    players.push({ name: n, balance: b });
+    document.getElementById('playerName').value = '';
+    addLog(`➕ ${n} 加入 (初始 ${b})`);
+    updateUI(); saveBackupData();
   }
 
-  function setAllIn() {
-    if (pot <= 0) return alert("目前底池為 0，請點擊上方重新設定底池！");
-    document.getElementById('betAmount').value = Math.floor(pot);
+  function sortByRank() {
+    pushState();
+    players.sort((a, b) => b.balance - a.balance);
+    addLog(`🏆 重新按金額排行結算`);
+    updateUI(); saveBackupData();
   }
 
-  function showToast(message, type) {
-    const toast = document.getElementById("toast");
-    toast.innerHTML = message;
-    toast.className = `show ${type}`;
-    setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 2500);
+  function executeTransfer() {
+    const f = parseInt(document.getElementById('transferFrom').value);
+    const t = parseInt(document.getElementById('transferTo').value);
+    const amt = parseFloat(document.getElementById('transferAmount').value) || 0;
+    if (f === t) return alert("不能轉帳給自己！");
+    if (amt <= 0) return alert("請輸入有效金額");
+    pushState();
+    players[f].balance -= amt; players[t].balance += amt;
+    addLog(`💸 轉帳: ${players[f].name} 給予 ${players[t].name} $${amt}`);
+    closeModal('transferModal'); updateUI(); saveBackupData();
+    showToast("💸 轉帳成功！", "pass");
   }
 
-  function advanceToNextPlayer() {
-    const select = document.getElementById('activePlayer');
-    let nextIndex = parseInt(select.value) + 1;
-    if (nextIndex >= players.length) nextIndex = 0;
-    select.value = nextIndex;
-  }
+  function setFraction(f) { document.getElementById('betAmount').value = Math.floor(pot * f); }
 
-  function toggleButtons(disabled) {
-    const btns = ['btn-win', 'btn-lose', 'btn-post', 'btn-triple', 'btn-pass', 'btn-add-pot'];
-    btns.forEach(id => { document.getElementById(id).disabled = disabled; });
+  function playTurn(res) {
+    if (players.length === 0) return alert("請先加入玩家");
+    if (pot <= 0 && res !== 'pass') return alert("底池空了");
+    if (isActionLocked) return;
+
+    pushState();
+    const idx = document.getElementById('activePlayer').value;
+    const bet = parseFloat(document.getElementById('betAmount').value) || 0;
+    const p = players[idx];
+
+    isActionLocked = true; toggleBtns(true);
+    let msg = ""; let type = res;
+
+    if (res === 'pass') { msg = `【過水】${p.name} Pass`; addLog(`⏭️ ${p.name} 過水`); }
+    else {
+      if (bet > pot) { isActionLocked=false; toggleBtns(false); return alert("超過底池"); }
+      if (res === 'win') { pot -= bet; p.balance += bet; msg = `✅ ${p.name} 贏得 ${bet}`; addLog(`✅ ${p.name} 贏 ${bet}`); }
+      else if (res === 'lose') { pot += bet; p.balance -= bet; msg = `❌ ${p.name} 輸了 ${bet}`; addLog(`❌ ${p.name} 輸 ${bet}`); }
+      else if (res === 'post') { const pen = bet * 2; pot += pen; p.balance -= pen; msg = `💥 撞柱！${p.name} 賠 ${pen}`; addLog(`💥 ${p.name} 撞柱賠 ${pen}`); }
+      else if (res === 'triple') { const pen = bet * 3; pot += pen; p.balance -= pen; msg = `☠️ 對子撞！${p.name} 賠 ${pen}`; addLog(`☠️ ${p.name} 對子撞賠 ${pen}`); }
+    }
+
+    updateUI(); saveBackupData(); showToast(msg, type);
+    setTimeout(() => { 
+        let next = parseInt(idx) + 1; if (next >= players.length) next = 0;
+        document.getElementById('activePlayer').value = next;
+        updateUI(); isActionLocked = false; toggleBtns(false); 
+    }, 800);
   }
 
   function addPotEqually() {
-    if (players.length === 0) return alert("請先加入玩家！");
-    if (isActionLocked) return;
-    const addAmount = parseFloat(document.getElementById('addPotAmount').value) || 0;
-    if (addAmount <= 0) return alert("請輸入加碼金額！");
-    
-    isActionLocked = true;
-    toggleButtons(true);
-    
-    const splitAmount = addAmount / players.length;
-    pot += addAmount;
-    players.forEach(p => { p.balance -= splitAmount; });
-    
-    updateUI();
-    saveBackupData(); 
-    
-    showToast(`臨時加碼 ${addAmount}！每人扣除 ${formatNum(splitAmount)}`, 'addpot');
-    setTimeout(() => { isActionLocked = false; toggleButtons(false); }, 1200);
+    const amt = parseFloat(document.getElementById('addPotAmount').value) || 0;
+    if (amt <= 0 || players.length === 0) return;
+    pushState();
+    const split = amt / players.length;
+    pot += amt; players.forEach(p => p.balance -= split);
+    addLog(`💰 平攤加碼 ${amt} (每人-${formatNum(split)})`);
+    updateUI(); saveBackupData(); showToast(`加碼 ${amt}`, "addpot");
   }
 
-  function playTurn(result) {
-    if (players.length === 0) return alert("請先加入玩家！");
-    if (pot <= 0 && result !== 'pass') return alert("底池已空！請至上方「設定底池」進行補注。");
-    if (isActionLocked) return; 
-
-    const playerIndex = document.getElementById('activePlayer').value;
-    const bet = parseFloat(document.getElementById('betAmount').value) || 0;
-    const playerName = players[playerIndex].name;
-    
-    if (result !== 'pass' && bet > pot) return alert("下注金額不能超過底池！");
-    if (result !== 'pass' && bet <= 0) return alert("請輸入有效的下注金額！");
-
-    isActionLocked = true;
-    toggleButtons(true);
-    let toastMsg = "";
-
-    if (result === 'pass') {
-      toastMsg = `【過水】${playerName} Pass！`;
-    } else if (result === 'win') {
-      pot -= bet;
-      players[playerIndex].balance += bet;
-      toastMsg = `✅ ${playerName} 贏得 ${bet}！`;
-      if (pot < 1) {
-          pot = 0; 
-          setTimeout(() => alert(`🎉 恭喜！${playerName} 清空底池！請至上方設定新底池開始下一輪。`), 500);
-      }
-    } else if (result === 'lose') {
-      pot += bet;
-      players[playerIndex].balance -= bet;
-      toastMsg = `❌ ${playerName} 輸了 ${bet}！`;
-    } else if (result === 'post') {
-      const penalty = bet * multiplier;
-      pot += penalty;
-      players[playerIndex].balance -= penalty;
-      toastMsg = `💥 撞柱！${playerName} 賠了 ${penalty}！`;
-    } else if (result === 'triple') {
-      const penalty = bet * tripleMultiplier;
-      pot += penalty;
-      players[playerIndex].balance -= penalty;
-      toastMsg = `☠️ 對子撞！${playerName} 慘賠 ${penalty}！`;
-    }
-    
-    updateUI();
-    saveBackupData(); 
-    
-    showToast(toastMsg, result);
-    setTimeout(() => { advanceToNextPlayer(); }, 500);
-    setTimeout(() => { isActionLocked = false; toggleButtons(false); }, 1200);
+  function addLog(m) {
+    const t = new Date().toLocaleTimeString();
+    historyLog.unshift(`[${t}] ${m}`);
+    if (historyLog.length > 20) historyLog.pop();
+    renderHistory();
   }
 
-  // --- Modal 控制邏輯 ---
-  function openHelp() {
-    document.getElementById('helpModal').style.display = 'block';
+  function renderHistory() {
+    const b = document.getElementById('historyBox');
+    b.innerHTML = historyLog.map(l => `<div style="border-bottom:1px dashed #444; padding:2px 0">${l}</div>`).join('');
   }
-  
-  function closeHelp() {
-    document.getElementById('helpModal').style.display = 'none';
-  }
-  
-  // 點擊 Modal 背景外的半透明區域也會自動關閉
-  window.onclick = function(event) {
-    const modal = document.getElementById('helpModal');
-    if (event.target == modal) {
-      modal.style.display = "none";
+
+  function resetGame() {
+    if (confirm("確定清除開新局？")) {
+      localStorage.removeItem('DragonGateBackup_v12');
+      location.reload();
     }
   }
+
+  function toggleBtns(d) { ['btn-win', 'btn-lose', 'btn-post', 'btn-triple', 'btn-pass', 'btn-add-pot'].forEach(id => document.getElementById(id).disabled = d); }
+  function showToast(m, t) { const s = document.getElementById("toast"); s.innerHTML = m; s.className = `show ${t}`; setTimeout(() => s.className = "", 2500); }
+  function openModal(id) { document.getElementById(id).style.display = 'block'; }
+  function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+  window.onclick = function(e) { if (e.target.className === 'modal') e.target.style.display = "none"; }
 </script>
 
 </body>
