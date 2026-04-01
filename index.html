@@ -3,11 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>射龍門計算器 v9</title>
+<title>射龍門計算器 v10</title>
 <style>
-  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; background-color: #f4f7f6; color: #333; padding-bottom: 60px; }
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; background-color: #f4f7f6; color: #333; padding-bottom: 60px; margin: 0; }
   .card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: relative; }
-  h2 { margin-top: 0; color: #2c3e50; font-size: 20px; }
+  
+  /* 標題與說明按鈕排版 */
+  .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .header-row h2 { margin: 0; color: #2c3e50; font-size: 20px; }
+  .btn-help { background-color: #f39c12; color: white; border: none; padding: 6px 12px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+  
   label { font-size: 14px; color: #7f8c8d; font-weight: bold; }
   input, select { padding: 10px; margin: 5px 0; width: 100%; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; }
   button { padding: 12px; font-size: 16px; border-radius: 8px; border: none; cursor: pointer; color: white; font-weight: bold; transition: opacity 0.2s; }
@@ -46,17 +51,30 @@
   #toast.triple { background-color: #d35400; }
   #toast.pass { background-color: #7f8c8d; }
   #toast.reset { background-color: #8e44ad; }
+
+  /* 彈出式說明視窗 (Modal) 樣式 */
+  .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(2px); }
+  .modal-content { background-color: #fff; margin: 10vh auto; padding: 20px; border-radius: 12px; width: 90%; max-width: 450px; max-height: 80vh; overflow-y: auto; box-shadow: 0 5px 15px rgba(0,0,0,0.3); position: relative; }
+  .close-modal { color: #aaa; position: absolute; right: 15px; top: 10px; font-size: 28px; font-weight: bold; cursor: pointer; }
+  .close-modal:hover, .close-modal:focus { color: #333; text-decoration: none; }
+  .modal h3 { margin-top: 0; color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+  .modal h4 { color: #e67e22; margin-bottom: 5px; }
+  .modal ul { padding-left: 20px; margin-top: 0; }
+  .modal li { margin-bottom: 8px; line-height: 1.5; font-size: 15px; }
 </style>
 </head>
 <body>
 
 <div class="card">
-  <h2>💰 底池與規則設定</h2>
+  <div class="header-row">
+    <h2>💰 底池與規則設定</h2>
+    <button class="btn-help" onclick="openHelp()">📖 使用說明</button>
+  </div>
   <label>欲注入底池之金額 (平攤):</label>
   <input type="number" id="initPot" value="500">
   <div class="input-group">
-    <div style="flex:1;"><label>一般撞柱倍數:</label><input type="number" id="postMultiplier" value="2"></div>
-    <div style="flex:1;"><label>對子撞柱倍數:</label><input type="number" id="tripleMultiplier" value="3"></div>
+    <div style="flex:1;"><label>一般撞倍數:</label><input type="number" id="postMultiplier" value="2"></div>
+    <div style="flex:1;"><label>對子撞倍數:</label><input type="number" id="tripleMultiplier" value="3"></div>
   </div>
   <button class="btn-full" onclick="setPot()">🚀 確認注入底池並開始</button>
   <div class="pot-display">目前桌面上底池: <span id="currentPot">0</span></div>
@@ -104,6 +122,40 @@
 
 <div id="toast"></div>
 
+<div id="helpModal" class="modal">
+  <div class="modal-content">
+    <span class="close-modal" onclick="closeHelp()">&times;</span>
+    <h3>💡 射龍門計算器 - 快速上手指南</h3>
+    
+    <h4>1. 🎲 遊戲準備 (開局)</h4>
+    <ul>
+      <li><strong>設定底池</strong>：輸入初始彩金，點擊「確認注入」。系統會自動從大家身上<strong>平攤扣除</strong>來建立底池。</li>
+      <li><strong>開新局</strong>：如果想清除之前的紀錄，點擊最上方的「🗑️ 清除所有紀錄」。</li>
+    </ul>
+
+    <h4>2. 🎮 基礎按鈕怎麼按？</h4>
+    <ul>
+      <li><strong>✅ 進門 (贏)</strong>：第三張牌在中間，你贏走下注金。</li>
+      <li><strong>❌ 不進 (輸)</strong>：第三張牌在外面，你賠掉下注金給底池。</li>
+      <li><strong>💥 一般撞</strong>：第三張牌跟前兩張的其中一張一樣，慘賠設定的倍數！</li>
+      <li><strong>☠️ 對子撞</strong>：前兩張一樣(如QQ)，第三張又一樣(QQQ)，恭喜慘賠對子專屬倍數！</li>
+      <li><strong>⏭️ 過水</strong>：牌面太爛不想玩，點過水直接換下一位。</li>
+    </ul>
+
+    <h4>3. 🛠️ 特殊狀況處理</h4>
+    <ul>
+      <li><strong>底池乾了</strong>：上方重新輸入金額點擊「確認注入」，大家重新平攤出錢。</li>
+      <li><strong>臨時加碼</strong>：下方輸入金額點擊「💰 平攤加碼」，系統自動幫所有人扣錢加進底池。</li>
+      <li><strong>按錯/補錢</strong>：滑到最下方的「結算表」，<strong>直接點擊數字就能手動修改</strong>個人籌碼。</li>
+    </ul>
+
+    <h4>4. 💾 斷線防護</h4>
+    <ul>
+      <li>系統具備「即時自動備份」，不小心滑掉網頁或重新整理，所有金額都會完美還原！</li>
+    </ul>
+  </div>
+</div>
+
 <script>
   let pot = 0;
   let players = [];
@@ -111,7 +163,6 @@
   let tripleMultiplier = 3;
   let isActionLocked = false;
 
-  // --- 新增：網頁載入時自動讀取本地備份 ---
   window.onload = function() {
     loadBackupData();
   };
@@ -120,18 +171,11 @@
     return Number.isInteger(num) ? num : parseFloat(num.toFixed(2));
   }
 
-  // --- 新增：寫入備份至手機/瀏覽器儲存空間 ---
   function saveBackupData() {
-    const gameData = {
-      pot: pot,
-      players: players,
-      multiplier: multiplier,
-      tripleMultiplier: tripleMultiplier
-    };
+    const gameData = { pot: pot, players: players, multiplier: multiplier, tripleMultiplier: tripleMultiplier };
     localStorage.setItem('DragonGateBackup', JSON.stringify(gameData));
   }
 
-  // --- 新增：讀取備份資料邏輯 ---
   function loadBackupData() {
     const savedData = localStorage.getItem('DragonGateBackup');
     if (savedData) {
@@ -141,29 +185,19 @@
         players = parsedData.players || [];
         multiplier = parsedData.multiplier || 2;
         tripleMultiplier = parsedData.tripleMultiplier || 3;
-        
-        // 將設定欄位的數字還原為上次存檔的狀態
         document.getElementById('postMultiplier').value = multiplier;
         document.getElementById('tripleMultiplier').value = tripleMultiplier;
-        
         updateUI();
-        if (players.length > 0 || pot > 0) {
-          showToast('🔄 已成功恢復上次的遊戲紀錄！', 'pass');
-        }
-      } catch (e) {
-        console.error("備份資料解析錯誤", e);
-      }
+      } catch (e) { console.error("備份資料解析錯誤", e); }
     } else {
       updateUI();
     }
   }
 
-  // --- 新增：強制清除所有紀錄並重置遊戲 ---
   function resetGame() {
     if (confirm("⚠️ 警告：確定要清除所有玩家與底池紀錄，重新開始新的一局嗎？此動作無法復原！")) {
       localStorage.removeItem('DragonGateBackup');
-      pot = 0;
-      players = [];
+      pot = 0; players = [];
       document.getElementById('initPot').value = 500;
       updateUI();
       showToast('🗑️ 紀錄已完全清除，請重新加入玩家。', 'reset');
@@ -172,7 +206,6 @@
 
   function updateUI() {
     document.getElementById('currentPot').innerText = formatNum(pot);
-    
     const select = document.getElementById('activePlayer');
     const currentIndex = select.value;
     select.innerHTML = '';
@@ -182,9 +215,7 @@
       opt.innerHTML = p.name;
       select.appendChild(opt);
     });
-    if (currentIndex !== "" && currentIndex < players.length) {
-        select.value = currentIndex;
-    }
+    if (currentIndex !== "" && currentIndex < players.length) { select.value = currentIndex; }
     renderPlayerList();
   }
 
@@ -203,7 +234,7 @@
   function manualEditBalance(index, newValue) {
     players[index].balance = parseFloat(newValue) || 0;
     updateUI();
-    saveBackupData(); // 數據異動，觸發存檔
+    saveBackupData(); 
   }
 
   function setPot() {
@@ -221,7 +252,7 @@
       showToast(`初始底池已設定為 ${pot}`, 'pass');
     }
     updateUI();
-    saveBackupData(); // 數據異動，觸發存檔
+    saveBackupData(); 
   }
 
   function addPlayer() {
@@ -233,10 +264,8 @@
       updateUI();
       document.getElementById('activePlayer').value = players.length - 1; 
       showToast(`${name} 加入遊戲！`, 'pass');
-      saveBackupData(); // 數據異動，觸發存檔
-    } else {
-      alert("請輸入玩家名稱！");
-    }
+      saveBackupData(); 
+    } else { alert("請輸入玩家名稱！"); }
   }
 
   function setAllIn() {
@@ -277,7 +306,7 @@
     players.forEach(p => { p.balance -= splitAmount; });
     
     updateUI();
-    saveBackupData(); // 數據異動，觸發存檔
+    saveBackupData(); 
     
     showToast(`臨時加碼 ${addAmount}！每人扣除 ${formatNum(splitAmount)}`, 'addpot');
     setTimeout(() => { isActionLocked = false; toggleButtons(false); }, 1200);
@@ -326,11 +355,28 @@
     }
     
     updateUI();
-    saveBackupData(); // 核心：每回合結束後，立即觸發存檔寫入硬碟
+    saveBackupData(); 
     
     showToast(toastMsg, result);
     setTimeout(() => { advanceToNextPlayer(); }, 500);
     setTimeout(() => { isActionLocked = false; toggleButtons(false); }, 1200);
+  }
+
+  // --- Modal 控制邏輯 ---
+  function openHelp() {
+    document.getElementById('helpModal').style.display = 'block';
+  }
+  
+  function closeHelp() {
+    document.getElementById('helpModal').style.display = 'none';
+  }
+  
+  // 點擊 Modal 背景外的半透明區域也會自動關閉
+  window.onclick = function(event) {
+    const modal = document.getElementById('helpModal');
+    if (event.target == modal) {
+      modal.style.display = "none";
+    }
   }
 </script>
 
