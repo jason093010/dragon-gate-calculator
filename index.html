@@ -2,8 +2,8 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>射龍門終極計算器 v16.0</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>射龍門終極計算器 v19.0</title>
 <style>
   :root {
     --bg-color: #f4f7f6; --card-bg: #ffffff; --text-color: #333333;
@@ -18,17 +18,18 @@
     }
   }
 
-  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; background-color: var(--bg-color); color: var(--text-color); padding-bottom: 80px; margin: 0; transition: all 0.3s; }
-  .card { background: var(--card-bg); border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); position: relative; }
-  
+  html, body { height: 100%; height: 100dvh; margin: 0; padding: 0; overflow: hidden; background-color: var(--bg-color); color: var(--text-color); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; flex-direction: column; }
+  .app-content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 15px; }
+
+  .card { background: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); position: relative; }
   .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
   .header-row h2 { margin: 0; color: var(--heading-color); font-size: 20px; }
   
   .btn-help { background-color: #f39c12; color: white; border: none; padding: 6px 12px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 14px; }
   label { font-size: 13px; color: #7f8c8d; font-weight: bold; }
-  input, select { padding: 10px; margin: 5px 0; width: 100%; box-sizing: border-box; border: 1px solid var(--border-color); border-radius: 5px; font-size: 16px; background-color: var(--input-bg); color: var(--text-color); }
+  input, select { padding: 12px; margin: 5px 0; width: 100%; box-sizing: border-box; border: 1px solid var(--border-color); border-radius: 8px; font-size: 16px; background-color: var(--input-bg); color: var(--text-color); }
   
-  button { padding: 12px; font-size: 16px; border-radius: 8px; border: none; cursor: pointer; color: white; font-weight: bold; transition: opacity 0.2s, transform 0.1s; }
+  button { padding: 14px; font-size: 16px; border-radius: 8px; border: none; cursor: pointer; color: white; font-weight: bold; transition: opacity 0.2s, transform 0.1s; }
   button:active { transform: scale(0.98); }
   button:disabled { opacity: 0.5; cursor: not-allowed; }
   
@@ -41,7 +42,6 @@
   
   .input-group { display: flex; gap: 8px; align-items: center; margin: 5px 0; }
   .input-group input { flex: 1; margin: 0; }
-  .btn-allin { background-color: #8e44ad; width: auto; white-space: nowrap; padding: 10px 15px; }
   
   .quick-bet-row { display: flex; gap: 5px; margin-top: 5px; }
   .btn-quick { background-color: #8e44ad; font-size: 13px; padding: 8px 4px; flex: 1; }
@@ -66,15 +66,17 @@
   .pot-display { font-size: 32px; font-weight: bold; color: #e67e22; text-align: center; margin: 10px 0; }
   .wake-lock-status { font-size: 11px; text-align: center; color: #2ecc71; margin-top: -5px; margin-bottom: 10px; }
 
-  /* 歷史紀錄區稍微拉高，因為虛擬模式的文字變長了 */
-  .history-box { max-height: 150px; overflow-y: auto; background: var(--history-bg); padding: 8px; border-radius: 5px; font-size: 13px; border: 1px solid var(--border-color); }
+  /* 時光機控制面板 */
+  .time-machine-box { background: rgba(231, 76, 60, 0.1); border: 1px solid var(--danger); padding: 12px; border-radius: 8px; margin-bottom: 15px; }
+  .time-machine-box label { color: var(--danger); font-size: 14px; margin-bottom: 8px; display: block; }
+  
+  .history-box { max-height: 200px; overflow-y: auto; background: var(--history-bg); padding: 10px; border-radius: 8px; font-size: 14px; border: 1px solid var(--border-color); }
   
   #toast { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 3000; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 16px; font-weight: bold; opacity: 0; transition: opacity 0.3s, bottom 0.3s; }
   #toast.show { visibility: visible; opacity: 1; bottom: 50px; }
   #toast.win { background-color: #27ae60; }
   #toast.lose { background-color: #c0392b; }
 
-  /* 彈出視窗排版 */
   .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.75); backdrop-filter: blur(4px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .modal-content { background-color: var(--card-bg); margin: 10% auto 15% auto; padding: 20px; border-radius: 12px; width: 85%; max-width: 450px; position: relative; color: var(--text-color); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
   .close-modal { color: #aaa; position: absolute; right: 15px; top: 10px; font-size: 28px; cursor: pointer; }
@@ -83,7 +85,7 @@
   .modal ul { padding-left: 20px; margin-top: 5px; }
   .modal li { margin-bottom: 8px; line-height: 1.5; font-size: 14px; }
 
-  /* 虛擬撲克牌系統 */
+  /* 虛擬撲克牌 */
   .toggle-container { background: var(--history-bg); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
   .toggle-container label { font-size: 16px; font-weight: bold; margin: 0; color: var(--text-color); }
   .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
@@ -112,138 +114,135 @@
 </head>
 <body>
 
-<div class="card">
-  <div class="header-row">
-    <h2>💰 底池與規則</h2>
-    <button class="btn-help" onclick="openModal('helpModal')">📖 完整說明</button>
-  </div>
-  <div class="wake-lock-status" id="wakeStatus">● 螢幕常亮已啟動</div>
-  <label>注入底池金額:</label>
-  <input type="number" id="initPot" value="500">
-  <button class="btn-full" onclick="setPot()">🚀 確認注入底池</button>
-  <div class="pot-display"><small style="font-size: 14px;">目前底池</small><br><span id="currentPot">0</span></div>
-  <div class="input-group">
-      <button class="btn-undo" onclick="undo()">↩️ 復原上步</button>
-      <button class="btn-transfer" onclick="openModal('transferModal')">💸 玩家轉帳</button>
-  </div>
-</div>
-
-<div class="card">
-  <h2>👥 玩家管理</h2>
-  <div class="input-group">
-    <input type="text" id="playerName" placeholder="名稱">
-    <input type="number" id="playerBalance" value="1000" style="width: 100px; flex: none;">
-  </div>
-  <button class="btn-full" onclick="addPlayer()">➕ 加入玩家</button>
-</div>
-
-<div class="card">
-  <div class="toggle-container">
-    <label for="virtualToggle">🃏 啟用虛擬撲克牌模式</label>
-    <label class="switch">
-      <input type="checkbox" id="virtualToggle" onchange="toggleVirtualMode()">
-      <span class="slider"></span>
-    </label>
-  </div>
-  
-  <h2>🎮 遊戲進行</h2>
-  <select id="activePlayer" onchange="updateUI()"></select>
-  
-  <label>下注金額:</label>
-  <input type="number" id="betAmount" value="50">
-  <div class="quick-bet-row">
-    <button class="btn-quick" onclick="setFraction(1/3)">1/3</button>
-    <button class="btn-quick" onclick="setFraction(1/2)">1/2</button>
-    <button class="btn-quick" onclick="setFraction(1)">🔥 梭哈</button>
-  </div>
-
-  <div id="manualArea">
-    <div class="action-grid">
-      <button class="action-btn btn-win" onclick="manualPlay('win')">✅ 進門</button>
-      <button class="action-btn btn-lose" onclick="manualPlay('lose')">❌ 不進</button>
-      <button class="action-btn btn-post" onclick="manualPlay('post')">💥 撞柱</button>
-      <button class="action-btn btn-post-triple" onclick="manualPlay('triple')">☠️ 對子撞</button>
+<div class="app-content">
+  <div class="card">
+    <div class="header-row">
+      <h2>💰 底池與規則</h2>
+      <button class="btn-help" onclick="openModal('helpModal')">📖 說明</button>
     </div>
-    <div class="bottom-action-row">
-      <input type="number" id="addPotAmount" value="20">
-      <button class="btn-add-pot" onclick="addPotEqually()">💰 平攤加碼</button>
-      <button class="btn-pass" onclick="manualPlay('pass')">⏭️ 過水</button>
+    <div class="wake-lock-status" id="wakeStatus">● 螢幕常亮已啟動</div>
+    <label>注入底池金額:</label>
+    <input type="number" id="initPot" value="500">
+    <button class="btn-full" onclick="setPot()">🚀 確認注入底池</button>
+    <div class="pot-display"><small style="font-size: 14px;">目前底池</small><br><span id="currentPot">0</span></div>
+    <div class="input-group">
+        <button class="btn-undo" onclick="undoSingleStep()">↩️ 單步復原</button>
+        <button class="btn-transfer" onclick="openModal('transferModal')">💸 玩家轉帳</button>
     </div>
   </div>
 
-  <div id="virtualArea" class="desk-area">
-    <div class="deck-info" id="deckInfo">牌庫剩餘: 104 張 (雙副牌)</div>
-    <div class="cards-container" id="cardsDisplay"></div>
+  <div class="card">
+    <h2>👥 玩家管理</h2>
+    <div class="input-group">
+      <input type="text" id="playerName" placeholder="名稱">
+      <input type="number" id="playerBalance" value="1000" style="width: 100px; flex: none;">
+    </div>
+    <button class="btn-full" onclick="addPlayer()">➕ 加入玩家</button>
+  </div>
+
+  <div class="card">
+    <div class="toggle-container">
+      <label for="virtualToggle">🃏 啟用虛擬撲克牌模式</label>
+      <label class="switch">
+        <input type="checkbox" id="virtualToggle" onchange="toggleVirtualMode()">
+        <span class="slider"></span>
+      </label>
+    </div>
     
-    <div id="pairPredictionArea" style="display:none; margin-bottom:10px;">
-      <label style="color:white;">⚠️ 門柱成對，請預測第三張牌：</label>
-      <select id="pairPrediction" style="width:100px; margin:auto; display:block; text-align:center;">
-        <option value="high">比它大</option>
-        <option value="low">比它小</option>
-      </select>
+    <h2>🎮 遊戲進行</h2>
+    <select id="activePlayer" onchange="updateUI()"></select>
+    
+    <label>下注金額:</label>
+    <input type="number" id="betAmount" value="50">
+    <div class="quick-bet-row">
+      <button class="btn-quick" onclick="setFraction(1/3)">1/3</button>
+      <button class="btn-quick" onclick="setFraction(1/2)">1/2</button>
+      <button class="btn-quick" onclick="setFraction(1)">🔥 梭哈</button>
     </div>
 
-    <button class="btn-full btn-draw" id="btnDrawGate" onclick="drawGate()">🎲 翻開兩張門柱</button>
-    <div class="input-group" id="virtualActionGroup" style="display:none;">
-      <button class="btn-undo" style="background-color:#e74c3c;" onclick="virtualPass()">⏭️ 放棄過水</button>
-      <button class="btn-transfer" style="background-color:#8e44ad;" onclick="virtualShoot()">🚀 確定下注開牌</button>
+    <div id="manualArea">
+      <div class="action-grid">
+        <button class="action-btn btn-win" onclick="manualPlay('win')">✅ 進門</button>
+        <button class="action-btn btn-lose" onclick="manualPlay('lose')">❌ 不進</button>
+        <button class="action-btn btn-post" onclick="manualPlay('post')">💥 撞柱</button>
+        <button class="action-btn btn-post-triple" onclick="manualPlay('triple')">☠️ 對子撞</button>
+      </div>
+      <div class="bottom-action-row">
+        <input type="number" id="addPotAmount" value="20">
+        <button class="btn-add-pot" onclick="addPotEqually()">💰 平攤加碼</button>
+        <button class="btn-pass" onclick="manualPlay('pass')">⏭️ 過水</button>
+      </div>
     </div>
-    <div class="bottom-action-row" style="margin-top:10px;">
-      <input type="number" id="addPotAmountV" value="20" style="background:white; color:black;">
-      <button class="btn-add-pot" style="width:100%;" onclick="addPotEqually(true)">💰 全體平攤加碼</button>
+
+    <div id="virtualArea" class="desk-area">
+      <div class="deck-info" id="deckInfo">牌庫剩餘: 104 張 (雙副牌)</div>
+      <div class="cards-container" id="cardsDisplay"></div>
+      
+      <div id="pairPredictionArea" style="display:none; margin-bottom:10px;">
+        <label style="color:white;">⚠️ 門柱成對，請預測第三張牌：</label>
+        <select id="pairPrediction" style="width:100px; margin:auto; display:block; text-align:center;">
+          <option value="high">比它大</option>
+          <option value="low">比它小</option>
+        </select>
+      </div>
+
+      <button class="btn-full btn-draw" id="btnDrawGate" onclick="drawGate()">🎲 翻開兩張門柱</button>
+      <div class="input-group" id="virtualActionGroup" style="display:none;">
+        <button class="btn-undo" style="background-color:#e74c3c;" onclick="virtualPass()">⏭️ 放棄過水</button>
+        <button class="btn-transfer" style="background-color:#8e44ad;" onclick="virtualShoot()">🚀 確定下注開牌</button>
+      </div>
+      <div class="bottom-action-row" style="margin-top:10px;">
+        <input type="number" id="addPotAmountV" value="20" style="background:white; color:black;">
+        <button class="btn-add-pot" style="width:100%;" onclick="addPotEqually(true)">💰 全體平攤加碼</button>
+      </div>
     </div>
   </div>
-</div>
 
-<div class="card">
-  <h2>📊 結算排行榜</h2>
-  <div id="playerList"></div>
-  <button class="btn-sort" onclick="sortByRank()">🏆 依金額排行 (由高到低)</button>
-  <button class="btn-settle" onclick="calculateSettlement()">🤝 遊戲結束：一鍵結算誰給誰錢</button>
-</div>
+  <div class="card">
+    <h2>📊 結算排行榜</h2>
+    <div id="playerList"></div>
+    <button class="btn-sort" onclick="sortByRank()">🏆 依金額排行 (由高到低)</button>
+    <button class="btn-settle" onclick="calculateSettlement()">🤝 遊戲結束：一鍵結算誰給誰錢</button>
+  </div>
 
-<div class="card">
-  <h2>📜 歷史紀錄</h2>
-  <div id="historyBox" class="history-box"></div>
-  <button class="btn-danger" onclick="resetGame()">🗑️ 清除所有紀錄 (開新局)</button>
-</div>
+  <div class="card">
+    <h2>📜 歷史紀錄與時光機</h2>
+    <div class="time-machine-box">
+      <label>⚠️ 輸入紀錄最前方的「第 X 筆」號碼，可完美還原至錯誤發生前：</label>
+      <div class="input-group" style="margin-bottom:0;">
+        <input type="number" id="rollbackTarget" placeholder="輸入筆數 (例如: 10)">
+        <button class="btn-danger" style="margin:0; width:130px; font-size:15px; padding:12px;" onclick="executeTimeMachine()">⏳ 確認回溯</button>
+      </div>
+    </div>
+    <div id="historyBox" class="history-box"></div>
+  </div>
 
-<div id="helpModal" class="modal">
+  <div class="card" style="margin-bottom: 40px;">
+    <h2>🔄 資料同步與存檔轉移</h2>
+    <p style="font-size:13px; color:#7f8c8d; line-height:1.5;">手機快沒電了想換人接手記帳？點擊匯出存檔傳送至 LINE，另一支手機下載後點擊匯入，1 秒無縫接軌所有底池、籌碼與歷史紀錄！</p>
+    <div class="form-row">
+      <button class="btn-submit" style="background-color:#2980b9;" onclick="exportData()">📤 匯出遊戲存檔</button>
+      <input type="file" id="importFile" style="display:none" accept=".json" onchange="importData(event)">
+      <button class="btn-submit" style="background-color:#27ae60;" onclick="document.getElementById('importFile').click()">📥 匯入遊戲存檔</button>
+    </div>
+    <button class="btn-danger" style="background-color:#7f8c8d; margin-top:15px;" onclick="resetGame()">🗑️ 清除所有紀錄 (開新局)</button>
+  </div>
+
+</div> <div id="helpModal" class="modal">
   <div class="modal-content">
     <span class="close-modal" onclick="closeModal('helpModal')">&times;</span>
     <h3>💡 射龍門 - 完整終極指南</h3>
-    
-    <h4>1. 🎲 開局與準備</h4>
+    <h4>🔄 最新功能：存檔匯出/匯入</h4>
     <ul>
-      <li><strong>設定底池</strong>：輸入總彩金點擊「確認注入」，系統會自動從所有玩家籌碼中平攤扣款。</li>
-      <li><strong>加入玩家</strong>：輸入名稱與初始籌碼（金額可自訂，遊戲中允許扣至負數，代表欠款）。</li>
+      <li>在最下方可一鍵將戰況匯出為檔案，傳給朋友匯入，即可在不同手機間完美轉移牌局。</li>
     </ul>
-
-    <h4>2. 🃏 虛擬撲克牌模式 (防算牌雙副牌)</h4>
+    <h4>⏳ 霸王功能：防呆時光機回溯</h4>
     <ul>
-      <li>打開虛擬開關，系統會建立<strong>兩副牌 (共 104 張)</strong>的虛擬牌堆，並使用 Fisher-Yates 演算法完美洗牌，徹底杜絕算牌客的機率優勢。</li>
-      <li>點擊「翻開門柱」，決定下注金額後點擊「確定下注」，系統會自動翻出第三張牌並<strong>自動判定輸贏、結算彩金</strong>。</li>
-      <li>若門柱成對（如 QQ），請透過選單預測第三張是「大」還是「小」。預測錯誤若撞出第三張 Q，則觸發三倍重罰！</li>
-      <li><strong>最新更新</strong>：虛擬模式下，歷史紀錄會詳細列出你的門柱與抽出的卡牌，杜絕任何爭議！</li>
+      <li>歷史紀錄區會為所有動作自動打上「第 X 筆」的編號。在時光機對話框輸入該筆的號碼，將瞬間還原到底池、籌碼、虛擬卡牌發生前的狀態！</li>
     </ul>
-
-    <h4>3. 🎮 傳統手動模式與快捷操作</h4>
+    <h4>🃏 虛擬撲克牌模式</h4>
     <ul>
-      <li><strong>快捷下注</strong>：不知喊多少可直接點擊 <strong>1/3、1/2 或 🔥 梭哈</strong> 快捷鈕。</li>
-      <li><strong>手動判定</strong>：關閉虛擬牌桌時，自己翻實體牌，並點擊 ✅ 進門 / ❌ 不進 / 💥 撞柱 等按鈕，系統會自動計算底池。</li>
-    </ul>
-
-    <h4>4. 💸 資金變動與防呆工具</h4>
-    <ul>
-      <li><strong>平攤加碼</strong>：覺得底池太小，輸入金額點擊加碼，系統自動向每位玩家扣款並注入底池。</li>
-      <li><strong>玩家轉帳</strong>：玩家間私下借還錢，點擊最上方「💸 玩家轉帳」互轉，不影響底池。</li>
-      <li><strong>復原上步</strong>：按錯了？點擊「↩️ 復原」讓底池、籌碼與牌局回到上一動，解決一切爭議。</li>
-    </ul>
-
-    <h4>5. 🤝 最終遊戲結算 (神級功能)</h4>
-    <ul>
-      <li>遊戲結束時，點擊最下方<strong>「🤝 一鍵結算誰給誰錢」</strong>。</li>
-      <li>系統會自動把剩下的底池平分給所有人，並算出最完美的「最少轉帳路線」（例如 A 轉給 B 多少），完全免去人為複雜計算！</li>
+      <li>內建 104 張雙副牌，採用 Fisher-Yates 演算法完美洗牌，杜絕殺豬盤疑慮。</li>
     </ul>
   </div>
 </div>
@@ -274,43 +273,166 @@
 <div id="toast"></div>
 
 <script>
-  let pot = 0; let players = []; let historyLog = []; let historyStack = [];
+  const STORAGE_KEY = 'DragonGateBackup_v19';
+
+  let pot = 0; let players = []; 
+  let historyLog = []; 
+  let historyStack = []; 
+  let globalActionId = 0; 
   let multiplier = 2; let tripleMultiplier = 3; let isActionLocked = false;
   let wakeLock = null;
-
-  // 雙副牌庫變數
   let virtualDeck = []; let currentGate = []; let gateDrawn = false;
 
-  window.onload = function() { loadBackupData(); requestWakeLock(); initDeck(); };
+  window.onload = function() { 
+      loadBackupData(); 
+      requestWakeLock(); 
+      if(virtualDeck.length === 0) initDeck(); 
+  };
+  
   function formatNum(num) { return Number.isInteger(num) ? num : parseFloat(num.toFixed(2)); }
 
+  // --- 時光機與快照核心 ---
   function pushState() {
-    const state = JSON.stringify({ pot, players, historyLog: [...historyLog], virtualDeck: [...virtualDeck], currentGate: [...currentGate], gateDrawn });
-    historyStack.push(state);
-    if (historyStack.length > 10) historyStack.shift(); 
+    const stateStr = JSON.stringify({ pot, players, virtualDeck: [...virtualDeck], currentGate: [...currentGate], gateDrawn, globalActionId });
+    historyStack.unshift({ id: globalActionId + 1, state: stateStr });
+    if (historyStack.length > 50) historyStack.pop(); 
   }
 
-  function undo() {
-    if (historyStack.length === 0) return alert("沒有紀錄可以復原！");
-    const lastState = JSON.parse(historyStack.pop());
-    pot = lastState.pot; players = lastState.players; historyLog = lastState.historyLog;
-    virtualDeck = lastState.virtualDeck || []; currentGate = lastState.currentGate || []; gateDrawn = lastState.gateDrawn || false;
+  function undoSingleStep() {
+    if (historyStack.length === 0 || globalActionId === 0) return alert("沒有紀錄可以單步復原！");
+    if (!confirm(`確定要取消上一步 (第 ${globalActionId} 筆) 嗎？`)) return;
+    performTimeTravel(globalActionId);
+  }
+
+  function executeTimeMachine() {
+    const targetId = parseInt(document.getElementById('rollbackTarget').value);
+    if (!targetId || targetId <= 0) return alert("請輸入有效的筆數！");
+    if (targetId > globalActionId) return alert("無法回溯到未來的筆數！");
+
+    const snapshot = historyStack.find(s => s.id === targetId);
+    if (!snapshot) return alert(`找不到「第 ${targetId} 筆」的快照！(最多只保留最近 50 筆)`);
+    if(!confirm(`⚠️ 警告：確認要回溯嗎？\n這會將時空還原到「第 ${targetId} 筆」發生【之前】的狀態。後續紀錄將永久抹除！`)) return;
+
+    performTimeTravel(targetId);
+  }
+
+  function performTimeTravel(targetId) {
+    const snapshot = historyStack.find(s => s.id === targetId);
+    if (!snapshot) return;
+
+    const targetState = JSON.parse(snapshot.state);
+    pot = targetState.pot; 
+    players = targetState.players; 
+    virtualDeck = targetState.virtualDeck || []; 
+    currentGate = targetState.currentGate || []; 
+    gateDrawn = targetState.gateDrawn || false;
+    globalActionId = targetState.globalActionId; 
+
+    historyStack = historyStack.filter(s => s.id <= globalActionId + 1);
+    historyLog = historyLog.filter(log => log.id <= globalActionId);
+
+    if(document.getElementById('virtualToggle').checked) {
+        if(gateDrawn && currentGate.length === 2) {
+            const container = document.getElementById('cardsDisplay');
+            container.innerHTML = createCardHTML(currentGate[0], true) + createCardHTML(currentGate[1], true);
+            document.getElementById('btnDrawGate').style.display = 'none';
+            document.getElementById('virtualActionGroup').style.display = 'flex';
+            if(currentGate[0].val === currentGate[1].val) document.getElementById('pairPredictionArea').style.display = 'block';
+        } else {
+            resetVirtualTable();
+        }
+        updateDeckInfo();
+    }
+
+    document.getElementById('rollbackTarget').value = '';
     updateUI(); renderHistory(); saveBackupData();
-    if(document.getElementById('virtualToggle').checked) resetVirtualTable();
-    showToast("⏪ 已成功復原上一步！", "pass");
+    showToast(`⏳ 時光倒流至第 ${targetId} 筆之前！`, "pass");
   }
 
-  function saveBackupData() {
-    localStorage.setItem('DragonGateBackup_v16', JSON.stringify({ pot, players, historyLog }));
+  // --- 存檔匯出與匯入核心 ---
+  function exportData() {
+    // 蒐集所有當前狀態
+    const exportObj = {
+      pot, players, historyLog, historyStack, virtualDeck, currentGate, gateDrawn, globalActionId
+    };
+    // 轉換為 JSON 格式字串
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj));
+    // 創造隱藏的 a 標籤觸發下載
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", `DragonGate_Save_${new Date().getTime()}.json`);
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+    showToast("📤 存檔匯出成功！", "pass");
+  }
+
+  function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const d = JSON.parse(e.target.result);
+        // 基本的結構驗證
+        if (d.players === undefined || d.pot === undefined) throw new Error("檔案格式不符");
+        
+        pot = d.pot || 0; 
+        players = d.players || [];
+        historyLog = d.historyLog || [];
+        historyStack = d.historyStack || [];
+        virtualDeck = d.virtualDeck || [];
+        currentGate = d.currentGate || [];
+        gateDrawn = d.gateDrawn || false;
+        globalActionId = d.globalActionId || 0;
+        
+        saveBackupData();
+        updateUI();
+        renderHistory();
+        
+        // 恢復虛擬牌桌視圖狀態
+        const useVirtual = document.getElementById('virtualToggle').checked;
+        if(useVirtual) {
+            if(gateDrawn && currentGate.length === 2) {
+                const container = document.getElementById('cardsDisplay');
+                container.innerHTML = createCardHTML(currentGate[0], true) + createCardHTML(currentGate[1], true);
+                document.getElementById('btnDrawGate').style.display = 'none';
+                document.getElementById('virtualActionGroup').style.display = 'flex';
+                if(currentGate[0].val === currentGate[1].val) document.getElementById('pairPredictionArea').style.display = 'block';
+            } else {
+                resetVirtualTable();
+            }
+            updateDeckInfo();
+        }
+        
+        showToast("📥 遊戲存檔匯入成功！", "pass");
+      } catch(error) {
+        alert("匯入失敗：這可能不是正確的射龍門存檔檔案！");
+        console.error(error);
+      }
+      // 清空 input 讓下次選同一個檔案也能觸發
+      event.target.value = '';
+    };
+    reader.readAsText(file);
+  }
+
+  function saveBackupData() { 
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ pot, players, historyLog, historyStack, virtualDeck, currentGate, gateDrawn, globalActionId })); 
   }
 
   function loadBackupData() {
-    const saved = localStorage.getItem('DragonGateBackup_v16');
+    const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       const d = JSON.parse(saved);
-      pot = d.pot; 
+      pot = d.pot || 0; 
       players = (d.players || []).map(p => ({ ...p, initialBalance: p.initialBalance !== undefined ? p.initialBalance : 1000 }));
       historyLog = d.historyLog || [];
+      historyStack = d.historyStack || [];
+      virtualDeck = d.virtualDeck || [];
+      currentGate = d.currentGate || [];
+      gateDrawn = d.gateDrawn || false;
+      globalActionId = d.globalActionId || 0;
       updateUI(); renderHistory();
     }
   }
@@ -319,7 +441,8 @@
     const useVirtual = document.getElementById('virtualToggle').checked;
     document.getElementById('manualArea').style.display = useVirtual ? 'none' : 'block';
     document.getElementById('virtualArea').style.display = useVirtual ? 'block' : 'none';
-    if(useVirtual) resetVirtualTable();
+    if(useVirtual && !gateDrawn) resetVirtualTable();
+    else if(useVirtual && gateDrawn) updateDeckInfo();
   }
 
   function updateUI() {
@@ -351,19 +474,23 @@
     });
   }
 
-  function manualEdit(i, val) { pushState(); players[i].balance = parseFloat(val) || 0; saveBackupData(); updateUI(); }
+  function manualEdit(i, val) { 
+    pushState(); 
+    globalActionId++;
+    players[i].balance = parseFloat(val) || 0; 
+    addLog(`✏️ 手動修改了 ${players[i].name} 的籌碼`); 
+    saveBackupData(); updateUI(); 
+  }
+  
   function setFraction(f) { document.getElementById('betAmount').value = Math.floor(pot * f); }
 
-  // --- 虛擬撲克牌核心 (104張雙副牌) ---
   function initDeck() {
     virtualDeck = [];
     const suits = ['♠', '♥', '♦', '♣'];
     const ranks = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
     for(let d = 0; d < 2; d++) {
       for(let s of suits) {
-        for(let i=0; i<ranks.length; i++) {
-          virtualDeck.push({ suit: s, rank: ranks[i], val: i+1, color: (s==='♥'||s==='♦')?'red-card':'black-card' });
-        }
+        for(let i=0; i<ranks.length; i++) { virtualDeck.push({ suit: s, rank: ranks[i], val: i+1, color: (s==='♥'||s==='♦')?'red-card':'black-card' }); }
       }
     }
     for (let i = virtualDeck.length - 1; i > 0; i--) {
@@ -374,12 +501,7 @@
   }
 
   function updateDeckInfo() { document.getElementById('deckInfo').innerText = `牌庫剩餘: ${virtualDeck.length} 張 (雙副牌)`; }
-
-  // 格式化卡片為文字，用於歷史紀錄顯示 (例如：♠A)
-  function formatCardText(c) {
-    if(!c) return '';
-    return c.suit + c.rank;
-  }
+  function formatCardText(c) { return c ? c.suit + c.rank : ''; }
 
   function createCardHTML(card, isFlipped = false) {
     if(!card) return '';
@@ -388,9 +510,7 @@
         <div class="card-inner">
           <div class="card-face card-back"></div>
           <div class="card-face card-front ${card.color}">
-            <div class="suit-top">${card.suit}</div>
-            <div>${card.rank}</div>
-            <div class="suit-bottom">${card.suit}</div>
+            <div class="suit-top">${card.suit}</div><div>${card.rank}</div><div class="suit-bottom">${card.suit}</div>
           </div>
         </div>
       </div>
@@ -408,31 +528,25 @@
   function drawGate() {
     if (players.length === 0) return alert("請先加入玩家！");
     if (pot <= 0) return alert("底池空了！請先設定底池。");
-    if (virtualDeck.length < 5) { initDeck(); addLog("🔄 牌庫到底，已重新洗牌(104張)"); }
+    if (virtualDeck.length < 5) { initDeck(); showToast("🔄 牌庫到底，重新洗牌", "pass"); }
     
     currentGate = [virtualDeck.pop(), virtualDeck.pop()];
     gateDrawn = true;
     
     const container = document.getElementById('cardsDisplay');
     container.innerHTML = createCardHTML(currentGate[0], false) + createCardHTML(currentGate[1], false);
-    
-    setTimeout(() => {
-        container.children[0].classList.add('flipped');
-        container.children[1].classList.add('flipped');
-    }, 100);
+    setTimeout(() => { container.children[0].classList.add('flipped'); container.children[1].classList.add('flipped'); }, 100);
 
     document.getElementById('btnDrawGate').style.display = 'none';
     document.getElementById('virtualActionGroup').style.display = 'flex';
-    
-    if(currentGate[0].val === currentGate[1].val) {
-        document.getElementById('pairPredictionArea').style.display = 'block';
-    }
+    if(currentGate[0].val === currentGate[1].val) document.getElementById('pairPredictionArea').style.display = 'block';
     updateDeckInfo();
+    saveBackupData();
   }
 
   function virtualPass() {
     if(!gateDrawn) return;
-    executeTurn('pass', 0); // 過水不需紀錄牌面
+    executeTurn('pass', 0); 
     resetVirtualTable();
   }
 
@@ -445,7 +559,6 @@
     isActionLocked = true;
     const c3 = virtualDeck.pop();
     const container = document.getElementById('cardsDisplay');
-    
     const card3HTML = document.createElement('div');
     card3HTML.innerHTML = createCardHTML(c3, false);
     container.insertBefore(card3HTML.firstElementChild, container.children[1]);
@@ -476,61 +589,36 @@
        else result = 'lose';
     }
 
-    // 將牌面資料打包傳入 executeTurn
     const virtualCards = { g1: currentGate[0], g2: currentGate[1], c3: c3 };
     executeTurn(result, bet, virtualCards);
     setTimeout(() => { resetVirtualTable(); isActionLocked = false; }, 1800);
   }
 
-  // --- 手動與通用回合執行引擎 ---
   function manualPlay(res) { executeTurn(res, parseFloat(document.getElementById('betAmount').value) || 0); }
   
-  // 修改 executeTurn 接收第三個選填參數 virtualCards
   function executeTurn(res, bet, vCards = null) {
     if (players.length === 0) return alert("請先加入玩家");
     if (pot <= 0 && res !== 'pass') return alert("底池空了");
 
     pushState();
+    globalActionId++;
     const idx = document.getElementById('activePlayer').value;
     const p = players[idx];
     let msg = ""; let type = res;
 
-    // 如果是虛擬模式，產生詳細的牌面字串
     let cardText = "";
-    if (vCards) {
-      cardText = `門柱[${formatCardText(vCards.g1)}, ${formatCardText(vCards.g2)}] 抽到 ${formatCardText(vCards.c3)} ➔ `;
-    }
+    if (vCards) cardText = `門柱[${formatCardText(vCards.g1)}, ${formatCardText(vCards.g2)}] 抽到 ${formatCardText(vCards.c3)} ➔ `;
 
-    if (res === 'pass') { 
-      msg = `【過水】${p.name} Pass`; 
-      addLog(`⏭️ ${p.name} 選擇了過水`); 
-    }
+    if (res === 'pass') { msg = `【過水】${p.name} Pass`; addLog(`⏭️ ${p.name} 選擇了過水`); }
     else {
-      if (bet > pot) { historyStack.pop(); return alert("超過底池"); }
-      if (res === 'win') { 
-        pot -= bet; p.balance += bet; 
-        msg = `✅ ${p.name} 贏得 ${bet}`; 
-        addLog(`✅ ${p.name} ${cardText}贏得 ${bet}`); 
-      }
-      else if (res === 'lose') { 
-        pot += bet; p.balance -= bet; 
-        msg = `❌ ${p.name} 輸了 ${bet}`; 
-        addLog(`❌ ${p.name} ${cardText}輸掉 ${bet}`); 
-      }
-      else if (res === 'post') { 
-        const pen = bet * 2; pot += pen; p.balance -= pen; 
-        msg = `💥 撞柱！${p.name} 賠 ${pen}`; 
-        addLog(`💥 ${p.name} ${cardText}一般撞柱賠 ${pen}`); 
-      }
-      else if (res === 'triple') { 
-        const pen = bet * 3; pot += pen; p.balance -= pen; 
-        msg = `☠️ 對子撞！${p.name} 賠 ${pen}`; 
-        addLog(`☠️ ${p.name} ${cardText}對子撞慘賠 ${pen}`); 
-      }
+      if (bet > pot) { historyStack.shift(); globalActionId--; return alert("超過底池"); }
+      if (res === 'win') { pot -= bet; p.balance += bet; msg = `✅ ${p.name} 贏得 ${bet}`; addLog(`✅ ${p.name} ${cardText}贏得 ${bet}`); }
+      else if (res === 'lose') { pot += bet; p.balance -= bet; msg = `❌ ${p.name} 輸了 ${bet}`; addLog(`❌ ${p.name} ${cardText}輸掉 ${bet}`); }
+      else if (res === 'post') { const pen = bet * 2; pot += pen; p.balance -= pen; msg = `💥 撞柱！${p.name} 賠 ${pen}`; addLog(`💥 ${p.name} ${cardText}一般撞柱賠 ${pen}`); }
+      else if (res === 'triple') { const pen = bet * 3; pot += pen; p.balance -= pen; msg = `☠️ 對子撞！${p.name} 賠 ${pen}`; addLog(`☠️ ${p.name} ${cardText}對子撞慘賠 ${pen}`); }
     }
 
     updateUI(); saveBackupData(); showToast(msg, type);
-    
     if (pot < 1 && res === 'win') { pot = 0; setTimeout(() => alert(`🎉 恭喜！${p.name} 清空底池！請至上方重新注入。`), 500); }
 
     let next = parseInt(idx) + 1; if (next >= players.length) next = 0;
@@ -538,9 +626,9 @@
     updateUI();
   }
 
-  // --- 附屬功能區 ---
   function setPot() {
     pushState();
+    globalActionId++;
     const val = parseFloat(document.getElementById('initPot').value) || 0;
     if (players.length > 0) {
       const split = val / players.length;
@@ -555,6 +643,7 @@
     const b = parseFloat(document.getElementById('playerBalance').value) || 0;
     if (!n) return alert("請輸入名稱");
     pushState();
+    globalActionId++;
     players.push({ name: n, balance: b, initialBalance: b });
     document.getElementById('playerName').value = '';
     addLog(`➕ ${n} 加入`); updateUI(); saveBackupData();
@@ -565,6 +654,7 @@
     const amt = parseFloat(document.getElementById(amtId).value) || 0;
     if (amt <= 0 || players.length === 0) return;
     pushState();
+    globalActionId++;
     const split = amt / players.length;
     pot += amt; players.forEach(p => p.balance -= split);
     addLog(`💰 平攤加碼 ${amt} (每人-${formatNum(split)})`);
@@ -585,12 +675,20 @@
     const amt = parseFloat(document.getElementById('transferAmount').value) || 0;
     if (f === t) return alert("不能轉帳給自己！");
     if (amt <= 0) return alert("請輸入有效金額");
-    pushState(); players[f].balance -= amt; players[t].balance += amt;
+    pushState(); 
+    globalActionId++;
+    players[f].balance -= amt; players[t].balance += amt;
     addLog(`💸 轉帳: ${players[f].name} 給予 ${players[t].name} $${amt}`);
     closeModal('transferModal'); updateUI(); saveBackupData(); showToast("💸 轉帳成功！", "pass");
   }
 
-  function sortByRank() { pushState(); players.sort((a, b) => b.balance - a.balance); addLog(`🏆 重新排行`); updateUI(); saveBackupData(); }
+  function sortByRank() { 
+      pushState(); 
+      globalActionId++;
+      players.sort((a, b) => b.balance - a.balance); 
+      addLog(`🏆 重新排行結算順序`); 
+      updateUI(); saveBackupData(); 
+  }
 
   function calculateSettlement() {
     if (players.length === 0) return alert("沒有玩家可以結算！");
@@ -614,9 +712,24 @@
     document.getElementById('settlementResult').innerHTML = html + "</ul>"; openModal('settlementModal');
   }
 
-  function addLog(m) { const t = new Date().toLocaleTimeString(); historyLog.unshift(`[${t}] ${m}`); if (historyLog.length > 20) historyLog.pop(); renderHistory(); }
-  function renderHistory() { document.getElementById('historyBox').innerHTML = historyLog.map(l => `<div style="border-bottom:1px dashed var(--border-color); padding:4px 0">${l}</div>`).join(''); }
-  function resetGame() { if (confirm("確定清除所有紀錄？")) { localStorage.removeItem('DragonGateBackup_v16'); location.reload(); } }
+  function addLog(m) { 
+    const t = new Date().toLocaleTimeString(); 
+    const logObj = { id: globalActionId, text: `<span style="color:#e67e22; font-weight:bold; margin-right:5px;">[第 ${globalActionId} 筆]</span> <span style="color:#7f8c8d;">[${t}]</span> ${m}` };
+    historyLog.unshift(logObj); 
+    if (historyLog.length > 50) historyLog.pop(); 
+    renderHistory(); 
+  }
+  
+  function renderHistory() { 
+    const box = document.getElementById('historyBox');
+    box.innerHTML = historyLog.map(log => `
+      <div style="border-bottom:1px dashed var(--border-color); padding:8px 0; line-height:1.5;">
+        ${log.text}
+      </div>
+    `).join(''); 
+  }
+
+  function resetGame() { if (confirm("確定清除所有紀錄？")) { localStorage.removeItem(STORAGE_KEY); location.reload(); } }
   function showToast(m, t) { const s = document.getElementById("toast"); s.innerHTML = m; s.className = `show ${t}`; setTimeout(() => s.className = "", 2500); }
   function openModal(id) { document.getElementById(id).style.display = 'block'; }
   function closeModal(id) { document.getElementById(id).style.display = 'none'; }
